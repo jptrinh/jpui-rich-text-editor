@@ -81,6 +81,9 @@ export default {
         // Single source of truth for the exposed selection state. Pushes the same
         // snapshot into BOTH the local context (ref) and the `state` variable so
         // they always update together, on every selection / formatting change.
+        // Non-reactive sentinel: guards against publishing an identical snapshot,
+        // which would hand every binding a new object identity on each keystroke.
+        let lastSnapshotKey = '';
         const syncExposed = () => {
             const snapshot = {
                 ...editorState.value,
@@ -89,6 +92,11 @@ export default {
                 selectedText: selectedText.value,
                 isEmpty: !!editorInstance.value?.isEmpty,
             };
+            // Flat object of primitives — a stable serialization is a cheap and
+            // reliable equality check.
+            const key = JSON.stringify(snapshot);
+            if (key === lastSnapshotKey) return;
+            lastSnapshotKey = key;
             localData.value = snapshot;
             setStateVar(snapshot);
         };
