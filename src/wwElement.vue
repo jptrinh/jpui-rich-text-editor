@@ -280,20 +280,25 @@ export default {
             if (vertical === 'top' && spaceAbove < mh && spaceBelow > spaceAbove) vertical = 'bottom';
             else if (vertical === 'bottom' && spaceBelow < mh && spaceAbove > spaceBelow) vertical = 'top';
 
-            // Horizontal flip (predict the menu's viewport edges for the chosen anchor)
+            // Horizontal flip (predict the menu's viewport edges for a given anchor)
             let horizontal = desiredH;
             const edgesFor = h => {
                 const anchor = h === 'left' ? rect.vLeft : h === 'right' ? rect.vRight : rect.vCenterX;
                 const l = (h === 'left' ? anchor : h === 'right' ? anchor - mw : anchor - mw / 2) + nudgeX;
                 return { l, r: l + mw };
             };
+            const fits = edges => edges.l >= 0 && edges.r <= win.innerWidth;
+
             const chosen = edgesFor(horizontal);
-            if (chosen.r > win.innerWidth) {
-                const alt = edgesFor('right');
-                if (alt.l >= 0 && alt.r <= win.innerWidth) horizontal = 'right';
-            } else if (chosen.l < 0) {
-                const alt = edgesFor('left');
-                if (alt.l >= 0 && alt.r <= win.innerWidth) horizontal = 'left';
+            if (!fits(chosen)) {
+                // Fall back through the remaining anchors, starting from the side
+                // that pulls the menu back into view. Trying every alternative is
+                // what lets an already left/right-anchored menu recover — anchoring
+                // it to the same side again would be a no-op.
+                const order =
+                    chosen.r > win.innerWidth ? ['right', 'center', 'left'] : ['left', 'center', 'right'];
+                const better = order.find(h => h !== horizontal && fits(edgesFor(h)));
+                if (better) horizontal = better;
             }
 
             resolvedPlacement.value = { vertical, horizontal };
