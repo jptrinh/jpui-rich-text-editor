@@ -688,11 +688,6 @@
           "name": "isEmpty",
           "type": "boolean",
           "description": "True when the editor is empty."
-        },
-        {
-          "name": "html",
-          "type": "string",
-          "description": "Current content as HTML."
         }
       ]
     }

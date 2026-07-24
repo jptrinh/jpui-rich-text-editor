@@ -114,13 +114,17 @@ Read the editor's live state from `context.local.data?.['richText']`:
 
 | Group | Keys |
 |---|---|
-| Value | `html`, `isEmpty`, `hasSelection`, `selectedText` |
+| Selection | `isEmpty`, `hasSelection`, `selectedText` |
 | Active marks | `isBold`, `isItalic`, `isUnderline`, `isStrike`, `isCode`, `isCodeBlock` |
 | Active nodes | `isBulletList`, `isOrderedList`, `isBlockquote`, `isLink`, `linkHref` |
 | Current | `currentHeadingLevel` (0 = paragraph), `currentColor`, `currentFontFamily` |
 
-The HTML value is also available as the internal variable **`value`** (form
-integration) and emitted through the **`On change`** event.
+The same snapshot is exposed globally as the **`state`** variable
+(`variables['<uid>-state']`), which is what toolbar buttons bind to for their
+active state.
+
+The HTML content is **not** part of that snapshot — it lives in the **`value`**
+variable (form integration) and is emitted through the **`On change`** event.
 
 ---
 

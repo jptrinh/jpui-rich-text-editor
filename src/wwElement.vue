@@ -61,7 +61,7 @@ export default {
         /* wwEditor:end */
 
         // ---- Value exposure (HTML) as internal variable ----
-        const { value: variableValue, setValue } = wwLib.wwVariable.useComponentVariable({
+        const { setValue } = wwLib.wwVariable.useComponentVariable({
             uid: props.uid,
             name: 'value',
             type: 'string',
@@ -85,9 +85,11 @@ export default {
         // which would hand every binding a new object identity on each keystroke.
         let lastSnapshotKey = '';
         const syncExposed = () => {
+            // No `html` here on purpose: the content lives in the `value` variable.
+            // Duplicating it would lag behind whenever debounce is on, and would
+            // republish this snapshot on every keystroke.
             const snapshot = {
                 ...editorState.value,
-                html: variableValue.value,
                 hasSelection: hasSelection.value,
                 selectedText: selectedText.value,
                 isEmpty: !!editorInstance.value?.isEmpty,
@@ -374,7 +376,7 @@ export default {
         // local context only carries reactive STATE for bindings/formulas.
         const markdown = `### Rich Text Editor
 State exposed as \`context.local.data?.['richText']\`:
-- \`html\`, \`isEmpty\`, \`hasSelection\`, \`selectedText\`
+- \`isEmpty\`, \`hasSelection\`, \`selectedText\` (the HTML content is the \`value\` variable)
 - \`isBold\`, \`isItalic\`, \`isUnderline\`, \`isStrike\`, \`isCode\`, \`isCodeBlock\`
 - \`isBulletList\`, \`isOrderedList\`, \`isBlockquote\`, \`isLink\`, \`linkHref\`
 - \`currentHeadingLevel\` (0 = paragraph), \`currentColor\`, \`currentFontFamily\`
