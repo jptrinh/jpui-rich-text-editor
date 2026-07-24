@@ -269,16 +269,23 @@ export default {
             }
 
             const menu = menuEl.value;
-            const mh = (menu?.offsetHeight || 40) + MENU_GAP + Math.abs(parsePx(props.content?.menuOffsetY));
+            const mh = menu?.offsetHeight || 40;
             const mw = menu?.offsetWidth || 160;
             const nudgeX = parsePx(props.content?.menuOffsetX);
+            const nudgeY = parsePx(props.content?.menuOffsetY);
 
-            // Vertical flip
+            // Vertical flip. A positive offsetY shifts the menu down, so it needs
+            // that much less room above and that much more below (and vice versa).
+            // Using the absolute offset here would inflate both sides and flip the
+            // menu even when the nudge moved it toward the available space.
             let vertical = desiredV;
+            const needAbove = mh + MENU_GAP - nudgeY;
+            const needBelow = mh + MENU_GAP + nudgeY;
             const spaceAbove = rect.vTop;
             const spaceBelow = win.innerHeight - rect.vBottom;
-            if (vertical === 'top' && spaceAbove < mh && spaceBelow > spaceAbove) vertical = 'bottom';
-            else if (vertical === 'bottom' && spaceBelow < mh && spaceAbove > spaceBelow) vertical = 'top';
+            if (vertical === 'top' && spaceAbove < needAbove && spaceBelow > spaceAbove) vertical = 'bottom';
+            else if (vertical === 'bottom' && spaceBelow < needBelow && spaceAbove > spaceBelow)
+                vertical = 'top';
 
             // Horizontal flip (predict the menu's viewport edges for a given anchor)
             let horizontal = desiredH;
