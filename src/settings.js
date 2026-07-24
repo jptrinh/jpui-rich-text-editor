@@ -142,19 +142,22 @@ export function typographyGroup(prefix, labelEn) {
 }
 
 // The element types we expose grouped styling for, in display order.
+// `prefix` drives the property keys and the CSS variable names; the matching CSS
+// selectors live in wwElement.vue's stylesheet, which is compiled separately and
+// cannot read this array — so deliberately don't mirror them here.
 export const CONTENT_TYPES = [
-    { prefix: 'paragraph', label: 'Paragraph', selector: 'p' },
-    { prefix: 'h1', label: 'Heading 1', selector: 'h1' },
-    { prefix: 'h2', label: 'Heading 2', selector: 'h2' },
-    { prefix: 'h3', label: 'Heading 3', selector: 'h3' },
-    { prefix: 'h4', label: 'Heading 4', selector: 'h4' },
-    { prefix: 'h5', label: 'Heading 5', selector: 'h5' },
-    { prefix: 'h6', label: 'Heading 6', selector: 'h6' },
-    { prefix: 'blockquote', label: 'Quote', selector: 'blockquote' },
+    { prefix: 'paragraph', label: 'Paragraph' },
+    { prefix: 'h1', label: 'Heading 1' },
+    { prefix: 'h2', label: 'Heading 2' },
+    { prefix: 'h3', label: 'Heading 3' },
+    { prefix: 'h4', label: 'Heading 4' },
+    { prefix: 'h5', label: 'Heading 5' },
+    { prefix: 'h6', label: 'Heading 6' },
+    { prefix: 'blockquote', label: 'Quote' },
     // `extras` are extra property keys appended to this type's side-panel group.
-    { prefix: 'code', label: 'Code', selector: 'pre', extras: ['codeBackground'] },
-    { prefix: 'list', label: 'Lists', selector: 'ul, ol' },
-    { prefix: 'link', label: 'Link', selector: 'a' },
+    { prefix: 'code', label: 'Code', extras: ['codeBackground'] },
+    { prefix: 'list', label: 'Lists' },
+    { prefix: 'link', label: 'Link' },
 ];
 
 // Typography sub-properties (suffixes) that each group defines, used to build
