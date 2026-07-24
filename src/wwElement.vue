@@ -103,6 +103,7 @@ export default {
                     left: '8px',
                     top: '8px',
                     transform: `translate(${offsetX}, ${offsetY})`,
+                    transformOrigin: 'center bottom',
                 };
             }
             const { vertical, horizontal } = resolvedPlacement.value;
@@ -117,10 +118,19 @@ export default {
             const ty =
                 vertical === 'bottom' ? `calc(0% + ${MENU_GAP}px)` : `calc(-100% - ${MENU_GAP}px)`;
 
+            // Entrance scales from the edge nearest the selection, so the toolbar
+            // reads as growing out of the selected text. transform-origin drives
+            // the independent `scale` used by the appear animation (the `transform`
+            // above only positions the menu — the two don't conflict).
+            const originY = vertical === 'bottom' ? 'top' : 'bottom';
+            const originX =
+                horizontal === 'left' ? 'left' : horizontal === 'right' ? 'right' : 'center';
+
             return {
                 left: `${left}px`,
                 top: `${top}px`,
                 transform: `translate(${tx}, ${ty}) translate(${offsetX}, ${offsetY})`,
+                transformOrigin: `${originX} ${originY}`,
             };
         });
 
@@ -596,6 +606,10 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
         }
     }
 
+    // Single floating box. Positioning is done via the inline `transform`
+    // (translate); the appear animation uses the independent `scale` property so
+    // the two never collide. transform-origin (set inline) sits on the edge
+    // nearest the selection, so the toolbar grows out of the text.
     &__menu {
         position: absolute;
         z-index: 1000;
@@ -608,6 +622,7 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
         border-radius: var(--rt-menu-radius, 8px);
         box-shadow: var(--rt-menu-shadow, 0px 8px 24px 0px rgba(0, 0, 0, 0.24));
         white-space: nowrap;
+        animation: jp-rte-menu-in 150ms cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     &__menu-layout {
@@ -616,6 +631,23 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
         gap: var(--rt-menu-gap, 4px);
         min-width: 24px;
         min-height: 24px;
+    }
+}
+
+@keyframes jp-rte-menu-in {
+    from {
+        opacity: 0;
+        scale: 0.82;
+    }
+    to {
+        opacity: 1;
+        scale: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .jp-rte__menu {
+        animation: none;
     }
 }
 </style>
