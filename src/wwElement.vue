@@ -331,33 +331,9 @@ export default {
             isEmpty: !!editorInstance.value?.isEmpty,
         }));
 
-        const action = (method, label, icon, description) => ({
-            description,
-            method,
-            editor: { label, group: 'Rich Text', icon },
-        });
-        const localMethods = {
-            toggleBold: action(toggleBold, 'Toggle Bold', 'text', 'Toggle bold on the selection'),
-            toggleItalic: action(toggleItalic, 'Toggle Italic', 'text', 'Toggle italic on the selection'),
-            toggleUnderline: action(toggleUnderline, 'Toggle Underline', 'text', 'Toggle underline'),
-            toggleStrike: action(toggleStrike, 'Toggle Strikethrough', 'text', 'Toggle strikethrough'),
-            toggleCode: action(toggleCode, 'Toggle Inline Code', 'code', 'Toggle inline code'),
-            toggleCodeBlock: action(toggleCodeBlock, 'Toggle Code Block', 'code', 'Toggle a code block'),
-            toggleBulletList: action(toggleBulletList, 'Toggle Bullet List', 'list', 'Toggle a bullet list'),
-            toggleOrderedList: action(toggleOrderedList, 'Toggle Ordered List', 'list', 'Toggle an ordered list'),
-            toggleBlockquote: action(toggleBlockquote, 'Toggle Quote', 'text', 'Toggle a blockquote'),
-            setParagraph: action(setParagraph, 'Set Paragraph', 'text', 'Convert block to paragraph'),
-            setHeading: action(setHeading, 'Set Heading', 'text', 'Set heading level (1-6)'),
-            setColor: action(setColor, 'Set Text Color', 'text', 'Apply a text color (hex)'),
-            unsetColor: action(unsetColor, 'Clear Text Color', 'text', 'Remove text color'),
-            setFontFamily: action(setFontFamily, 'Set Font Family', 'text', 'Apply a font family'),
-            setLink: action(setLink, 'Set Link', 'link', 'Add or update a link (href)'),
-            unsetLink: action(unsetLink, 'Remove Link', 'link', 'Remove the link'),
-            clearFormatting: action(clearFormatting, 'Clear Formatting', 'text', 'Remove all formatting'),
-            focus: action(focus, 'Focus Editor', 'text', 'Focus the editor'),
-            closeToolbar: action(closeToolbar, 'Close Toolbar', 'cross', 'Hide the floating toolbar until the next selection'),
-        };
-
+        // Formatting actions are declared in ww-config.js `actions` (with typed
+        // args) and exposed to WeWeb by returning them from setup() below. The
+        // local context only carries reactive STATE for bindings/formulas.
         const markdown = `### Rich Text Editor
 State exposed as \`context.local.data?.['richText']\`:
 - \`html\`, \`isEmpty\`, \`hasSelection\`, \`selectedText\`
@@ -367,7 +343,7 @@ State exposed as \`context.local.data?.['richText']\`:
 
 Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …).`;
 
-        wwLib.wwElement.useRegisterElementLocalContext('richText', localData, localMethods, markdown);
+        wwLib.wwElement.useRegisterElementLocalContext('richText', localData, {}, markdown);
 
         // ---- Lifecycle ----
         onMounted(() => {
@@ -474,6 +450,26 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
             showMenu,
             menuStyle,
             rootStyle,
+            // Component actions (declared in ww-config.js `actions`)
+            toggleBold,
+            toggleItalic,
+            toggleUnderline,
+            toggleStrike,
+            toggleCode,
+            toggleCodeBlock,
+            toggleBulletList,
+            toggleOrderedList,
+            toggleBlockquote,
+            setParagraph,
+            setHeading,
+            setColor,
+            unsetColor,
+            setFontFamily,
+            setLink,
+            unsetLink,
+            clearFormatting,
+            focus,
+            closeToolbar,
         };
     },
 };
