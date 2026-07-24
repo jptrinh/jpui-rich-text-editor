@@ -1,0 +1,625 @@
+<template>
+    <div ref="wrapperEl" class="jp-rte" :class="{ '-readonly': isReadonly }" :style="rootStyle" data-capture>
+        <!-- Editor surface: TipTap mounts into this element -->
+        <div ref="editorEl" class="jp-rte__surface"></div>
+
+        <!-- Floating selection menu = dropzone the user fills with their own buttons -->
+        <div v-if="showMenu" ref="menuEl" class="jp-rte__menu" :style="menuStyle">
+            <wwLayout path="toolbarContent" direction="row" class="jp-rte__menu-layout" />
+        </div>
+    </div>
+</template>
+
+<script>
+import { computed, ref, shallowRef, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
+import { Editor } from '@tiptap/core';
+import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import TextStyle from '@tiptap/extension-text-style';
+import Color from '@tiptap/extension-color';
+import FontFamily from '@tiptap/extension-font-family';
+import Link from '@tiptap/extension-link';
+import Placeholder from '@tiptap/extension-placeholder';
+import { CONTENT_TYPES, TYPO_FIELDS } from './settings';
+
+export default {
+    props: {
+        content: { type: Object, required: true },
+        uid: { type: String, required: true },
+        wwElementState: { type: Object, required: true },
+        /* wwEditor:start */
+        wwEditorState: { type: Object, required: false },
+        /* wwEditor:end */
+    },
+    emits: ['trigger-event'],
+    setup(props, { emit }) {
+        const wrapperEl = ref(null);
+        const editorEl = ref(null);
+        const menuEl = ref(null);
+        const editorInstance = shallowRef(null);
+        const debounceTimeout = ref(null);
+        const blurTimeout = ref(null);
+
+        // Reactive mirror of the editor's formatting state (read by NoCode buttons).
+        const editorState = ref({});
+        const selectedText = ref('');
+        const hasSelection = ref(false);
+        const isFocused = ref(false);
+        // Manual dismiss (via the closeToolbar action); reset on the next selection change.
+        const menuDismissed = ref(false);
+        // Selection geometry: edges relative to the wrapper (for absolute positioning)
+        // plus raw viewport coords (for available-space / flip detection).
+        const selectionRect = ref(null);
+        const resolvedPlacement = ref({ vertical: 'top', horizontal: 'center' });
+
+        /* wwEditor:start */
+        const isEditing = computed(() => props?.wwEditorState?.isEditing ?? false);
+        /* wwEditor:end */
+
+        // ---- Value exposure (HTML) as internal variable ----
+        const { value: variableValue, setValue } = wwLib.wwVariable.useComponentVariable({
+            uid: props.uid,
+            name: 'value',
+            type: 'string',
+            defaultValue: computed(() => String(props.content?.initialValue ?? '')),
+        });
+
+        // ---- Editable / readonly (editor state overrides content) ----
+        const isReadonly = computed(() => {
+            const override = props.wwElementState?.props?.readonly;
+            return override === undefined ? !!props.content?.readonly : !!override;
+        });
+        const isEditable = computed(() => {
+            const override = props.wwElementState?.props?.editable;
+            const editable = override === undefined ? props.content?.editable !== false : !!override;
+            return editable && !isReadonly.value;
+        });
+
+        const debounceDelay = computed(() => {
+            const parsed = wwLib.wwUtils.getLengthUnit(props.content?.debounceDelay || '400ms');
+            return Array.isArray(parsed) ? parsed[0] : 400;
+        });
+
+        // ---- Menu visibility & position ----
+        const showMenu = computed(() => {
+            if (menuDismissed.value) return false;
+            const onSelection = isEditable.value && isFocused.value && hasSelection.value;
+            let forceOpen = false;
+            /* wwEditor:start */
+            forceOpen = isEditing.value && props.content?.forceOpenMenu !== false;
+            /* wwEditor:end */
+            return forceOpen || onSelection;
+        });
+
+        const MENU_GAP = 8; // inherent spacing between selection and menu
+
+        const menuStyle = computed(() => {
+            const offsetX = props.content?.menuOffsetX || '0px';
+            const offsetY = props.content?.menuOffsetY || '0px';
+            const rect = selectionRect.value;
+            if (!rect) {
+                // Fallback (e.g. editor mode with no live selection): pin near the top-left.
+                return {
+                    left: '8px',
+                    top: '8px',
+                    transform: `translate(${offsetX}, ${offsetY})`,
+                };
+            }
+            const { vertical, horizontal } = resolvedPlacement.value;
+
+            // Horizontal anchor + translate
+            const left =
+                horizontal === 'left' ? rect.left : horizontal === 'right' ? rect.right : rect.centerX;
+            const tx = horizontal === 'left' ? '0' : horizontal === 'right' ? '-100%' : '-50%';
+
+            // Vertical anchor + translate (menu sits above or below the selection)
+            const top = vertical === 'bottom' ? rect.bottom : rect.top;
+            const ty =
+                vertical === 'bottom' ? `calc(0% + ${MENU_GAP}px)` : `calc(-100% - ${MENU_GAP}px)`;
+
+            return {
+                left: `${left}px`,
+                top: `${top}px`,
+                transform: `translate(${tx}, ${ty}) translate(${offsetX}, ${offsetY})`,
+            };
+        });
+
+        // ---- Styling: map content props to CSS variables ----
+        const rootStyle = computed(() => {
+            const style = {
+                '--rt-font-family': props.content?.editorFontFamily || 'inherit',
+                '--rt-font-size': props.content?.editorFontSize || '16px',
+                '--rt-color': props.content?.editorColor || '#1f2937',
+                '--rt-bg': props.content?.editorBackground || '#ffffff',
+                '--rt-padding': props.content?.editorPadding || '12px',
+                '--rt-min-height': props.content?.editorMinHeight || '160px',
+                '--rt-border': props.content?.editorBorder || '1px solid #e5e7eb',
+                '--rt-radius': props.content?.editorBorderRadius || '8px',
+                '--rt-placeholder-color': props.content?.placeholderColor || '#9ca3af',
+                '--rt-menu-bg': props.content?.menuBackground || '#111827',
+                '--rt-menu-border': props.content?.menuBorder || 'none',
+                '--rt-menu-radius': props.content?.menuBorderRadius || '8px',
+                '--rt-menu-padding': props.content?.menuPadding || '6px',
+                '--rt-menu-gap': props.content?.menuGap || '4px',
+                '--rt-menu-shadow': props.content?.menuShadow || '0px 8px 24px 0px rgba(0,0,0,0.24)',
+            };
+            // Per-element-type typography variables (e.g. --rt-h1-font-size).
+            for (const { prefix } of CONTENT_TYPES) {
+                for (const { suffix, css } of TYPO_FIELDS) {
+                    const val = props.content?.[`${prefix}${suffix}`];
+                    if (val !== undefined && val !== null && val !== '') {
+                        style[`--rt-${prefix}-${css}`] = val;
+                    }
+                }
+            }
+            return style;
+        });
+
+        // ---- Editor helpers ----
+        const refreshSelectionAnchor = () => {
+            const editor = editorInstance.value;
+            const wrapper = wrapperEl.value;
+            if (!editor || !wrapper || typeof wrapper.getBoundingClientRect !== 'function') return;
+            // Derive focus from the editor itself so it never gets stuck out of
+            // sync with a stale blur timer (fixes the menu not reopening on reselect).
+            isFocused.value = !!editor.isFocused;
+            const { from, to, empty } = editor.state.selection;
+            selectedText.value = empty ? '' : editor.state.doc.textBetween(from, to, ' ');
+            hasSelection.value = !empty;
+            if (empty) {
+                selectionRect.value = null;
+                return;
+            }
+            try {
+                const start = editor.view.coordsAtPos(from);
+                const end = editor.view.coordsAtPos(to);
+                const box = wrapper.getBoundingClientRect();
+                // Viewport-space selection box (start/end may span lines).
+                const vTop = Math.min(start.top, end.top);
+                const vBottom = Math.max(start.bottom, end.bottom);
+                const vLeft = Math.min(start.left, end.left);
+                const vRight = Math.max(start.right, end.right);
+                selectionRect.value = {
+                    // wrapper-relative anchors
+                    left: vLeft - box.left,
+                    right: vRight - box.left,
+                    centerX: (vLeft + vRight) / 2 - box.left,
+                    top: vTop - box.top,
+                    bottom: vBottom - box.top,
+                    // viewport coords for space detection
+                    vTop,
+                    vBottom,
+                    vLeft,
+                    vRight,
+                    vCenterX: (vLeft + vRight) / 2,
+                };
+                resolvePlacement();
+            } catch (e) {
+                selectionRect.value = null;
+            }
+        };
+
+        const parsePx = value => {
+            const n = parseFloat(value);
+            return Number.isFinite(n) ? n : 0;
+        };
+
+        // Decide the effective side, flipping to the opposite side when the menu
+        // would overflow the viewport (if auto-flip is enabled). Reads the rendered
+        // menu size, so it must run after the menu is in the DOM.
+        const resolvePlacement = () => {
+            const rect = selectionRect.value;
+            const win = wwLib.getFrontWindow();
+            if (!rect || !win) return;
+
+            const desiredV = props.content?.menuVerticalPosition === 'bottom' ? 'bottom' : 'top';
+            const desiredH = ['left', 'center', 'right'].includes(props.content?.menuHorizontalPosition)
+                ? props.content.menuHorizontalPosition
+                : 'center';
+
+            if (props.content?.menuAutoFlip === false) {
+                resolvedPlacement.value = { vertical: desiredV, horizontal: desiredH };
+                return;
+            }
+
+            const menu = menuEl.value;
+            const mh = (menu?.offsetHeight || 40) + MENU_GAP + Math.abs(parsePx(props.content?.menuOffsetY));
+            const mw = menu?.offsetWidth || 160;
+            const nudgeX = parsePx(props.content?.menuOffsetX);
+
+            // Vertical flip
+            let vertical = desiredV;
+            const spaceAbove = rect.vTop;
+            const spaceBelow = win.innerHeight - rect.vBottom;
+            if (vertical === 'top' && spaceAbove < mh && spaceBelow > spaceAbove) vertical = 'bottom';
+            else if (vertical === 'bottom' && spaceBelow < mh && spaceAbove > spaceBelow) vertical = 'top';
+
+            // Horizontal flip (predict the menu's viewport edges for the chosen anchor)
+            let horizontal = desiredH;
+            const edgesFor = h => {
+                const anchor = h === 'left' ? rect.vLeft : h === 'right' ? rect.vRight : rect.vCenterX;
+                const l = (h === 'left' ? anchor : h === 'right' ? anchor - mw : anchor - mw / 2) + nudgeX;
+                return { l, r: l + mw };
+            };
+            const chosen = edgesFor(horizontal);
+            if (chosen.r > win.innerWidth) {
+                const alt = edgesFor('right');
+                if (alt.l >= 0 && alt.r <= win.innerWidth) horizontal = 'right';
+            } else if (chosen.l < 0) {
+                const alt = edgesFor('left');
+                if (alt.l >= 0 && alt.r <= win.innerWidth) horizontal = 'left';
+            }
+
+            resolvedPlacement.value = { vertical, horizontal };
+        };
+
+        const refreshState = () => {
+            const editor = editorInstance.value;
+            if (!editor) return;
+            const textStyle = editor.getAttributes('textStyle') || {};
+            editorState.value = {
+                isBold: editor.isActive('bold'),
+                isItalic: editor.isActive('italic'),
+                isUnderline: editor.isActive('underline'),
+                isStrike: editor.isActive('strike'),
+                isCode: editor.isActive('code'),
+                isCodeBlock: editor.isActive('codeBlock'),
+                isBulletList: editor.isActive('bulletList'),
+                isOrderedList: editor.isActive('orderedList'),
+                isBlockquote: editor.isActive('blockquote'),
+                isLink: editor.isActive('link'),
+                currentHeadingLevel:
+                    [1, 2, 3, 4, 5, 6].find(level => editor.isActive('heading', { level })) || 0,
+                currentColor: textStyle.color || null,
+                currentFontFamily: textStyle.fontFamily || null,
+                linkHref: editor.getAttributes('link')?.href || null,
+            };
+        };
+
+        const emitChange = html => {
+            if (props.content?.debounce) {
+                clearTimeout(debounceTimeout.value);
+                debounceTimeout.value = setTimeout(() => {
+                    setValue(html);
+                    emit('trigger-event', { name: 'change', event: { value: html } });
+                }, debounceDelay.value);
+            } else {
+                setValue(html);
+                emit('trigger-event', { name: 'change', event: { value: html } });
+            }
+        };
+
+        // ---- Commands exposed to NoCode buttons ----
+        const withChain = fn => {
+            const editor = editorInstance.value;
+            if (!editor) return;
+            fn(editor.chain().focus()).run();
+            refreshState();
+        };
+        const toggleBold = () => withChain(c => c.toggleBold());
+        const toggleItalic = () => withChain(c => c.toggleItalic());
+        const toggleUnderline = () => withChain(c => c.toggleUnderline());
+        const toggleStrike = () => withChain(c => c.toggleStrike());
+        const toggleCode = () => withChain(c => c.toggleCode());
+        const toggleCodeBlock = () => withChain(c => c.toggleCodeBlock());
+        const toggleBulletList = () => withChain(c => c.toggleBulletList());
+        const toggleOrderedList = () => withChain(c => c.toggleOrderedList());
+        const toggleBlockquote = () => withChain(c => c.toggleBlockquote());
+        const setParagraph = () => withChain(c => c.setParagraph());
+        const setHeading = level => withChain(c => c.toggleHeading({ level: Number(level) || 1 }));
+        const setColor = color => withChain(c => (color ? c.setColor(color) : c.unsetColor()));
+        const unsetColor = () => withChain(c => c.unsetColor());
+        const setFontFamily = family =>
+            withChain(c => (family ? c.setFontFamily(family) : c.unsetFontFamily()));
+        const setLink = href =>
+            withChain(c =>
+                href ? c.extendMarkRange('link').setLink({ href }) : c.extendMarkRange('link').unsetLink()
+            );
+        const unsetLink = () => withChain(c => c.extendMarkRange('link').unsetLink());
+        const clearFormatting = () => withChain(c => c.unsetAllMarks().clearNodes());
+        const focus = () => editorInstance.value?.commands.focus();
+        const closeToolbar = () => {
+            menuDismissed.value = true;
+        };
+
+        // ---- Local context: state (data) + actions (methods) ----
+        const localData = computed(() => ({
+            ...editorState.value,
+            html: variableValue.value,
+            hasSelection: hasSelection.value,
+            selectedText: selectedText.value,
+            isEmpty: !!editorInstance.value?.isEmpty,
+        }));
+
+        const action = (method, label, icon, description) => ({
+            description,
+            method,
+            editor: { label, group: 'Rich Text', icon },
+        });
+        const localMethods = {
+            toggleBold: action(toggleBold, 'Toggle Bold', 'text', 'Toggle bold on the selection'),
+            toggleItalic: action(toggleItalic, 'Toggle Italic', 'text', 'Toggle italic on the selection'),
+            toggleUnderline: action(toggleUnderline, 'Toggle Underline', 'text', 'Toggle underline'),
+            toggleStrike: action(toggleStrike, 'Toggle Strikethrough', 'text', 'Toggle strikethrough'),
+            toggleCode: action(toggleCode, 'Toggle Inline Code', 'code', 'Toggle inline code'),
+            toggleCodeBlock: action(toggleCodeBlock, 'Toggle Code Block', 'code', 'Toggle a code block'),
+            toggleBulletList: action(toggleBulletList, 'Toggle Bullet List', 'list', 'Toggle a bullet list'),
+            toggleOrderedList: action(toggleOrderedList, 'Toggle Ordered List', 'list', 'Toggle an ordered list'),
+            toggleBlockquote: action(toggleBlockquote, 'Toggle Quote', 'text', 'Toggle a blockquote'),
+            setParagraph: action(setParagraph, 'Set Paragraph', 'text', 'Convert block to paragraph'),
+            setHeading: action(setHeading, 'Set Heading', 'text', 'Set heading level (1-6)'),
+            setColor: action(setColor, 'Set Text Color', 'text', 'Apply a text color (hex)'),
+            unsetColor: action(unsetColor, 'Clear Text Color', 'text', 'Remove text color'),
+            setFontFamily: action(setFontFamily, 'Set Font Family', 'text', 'Apply a font family'),
+            setLink: action(setLink, 'Set Link', 'link', 'Add or update a link (href)'),
+            unsetLink: action(unsetLink, 'Remove Link', 'link', 'Remove the link'),
+            clearFormatting: action(clearFormatting, 'Clear Formatting', 'text', 'Remove all formatting'),
+            focus: action(focus, 'Focus Editor', 'text', 'Focus the editor'),
+            closeToolbar: action(closeToolbar, 'Close Toolbar', 'cross', 'Hide the floating toolbar until the next selection'),
+        };
+
+        const markdown = `### Rich Text Editor
+State exposed as \`context.local.data?.['richText']\`:
+- \`html\`, \`isEmpty\`, \`hasSelection\`, \`selectedText\`
+- \`isBold\`, \`isItalic\`, \`isUnderline\`, \`isStrike\`, \`isCode\`, \`isCodeBlock\`
+- \`isBulletList\`, \`isOrderedList\`, \`isBlockquote\`, \`isLink\`, \`linkHref\`
+- \`currentHeadingLevel\` (0 = paragraph), \`currentColor\`, \`currentFontFamily\`
+
+Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …).`;
+
+        wwLib.wwElement.useRegisterElementLocalContext('richText', localData, localMethods, markdown);
+
+        // ---- Lifecycle ----
+        onMounted(() => {
+            editorInstance.value = new Editor({
+                element: editorEl.value,
+                editable: isEditable.value,
+                content: props.content?.initialValue || '',
+                extensions: [
+                    StarterKit,
+                    Underline,
+                    TextStyle,
+                    Color,
+                    FontFamily,
+                    Link.configure({ openOnClick: false, autolink: false }),
+                    Placeholder.configure({ placeholder: () => props.content?.placeholder || '' }),
+                ],
+                autofocus: props.content?.autofocus ? 'end' : false,
+                onUpdate: ({ editor }) => {
+                    emitChange(editor.getHTML());
+                    refreshState();
+                },
+                onSelectionUpdate: () => {
+                    // A new selection re-enables the menu after a manual close.
+                    menuDismissed.value = false;
+                    refreshState();
+                    refreshSelectionAnchor();
+                    emit('trigger-event', { name: 'selectionChange', event: { text: selectedText.value } });
+                },
+                onFocus: () => {
+                    clearTimeout(blurTimeout.value);
+                    isFocused.value = true;
+                    refreshSelectionAnchor();
+                    emit('trigger-event', { name: 'focus', event: {} });
+                },
+                onBlur: () => {
+                    // Delay so a click on a menu button (which blurs the editor, then
+                    // re-focuses it via the command) still runs. Only hide if the
+                    // editor really lost focus and didn't get it back.
+                    clearTimeout(blurTimeout.value);
+                    blurTimeout.value = setTimeout(() => {
+                        if (!editorInstance.value?.isFocused) isFocused.value = false;
+                    }, 150);
+                    emit('trigger-event', { name: 'blur', event: {} });
+                },
+            });
+            // Seed the internal value from the initial content.
+            setValue(editorInstance.value.getHTML());
+            refreshState();
+        });
+
+        onBeforeUnmount(() => {
+            clearTimeout(debounceTimeout.value);
+            clearTimeout(blurTimeout.value);
+            editorInstance.value?.destroy();
+            editorInstance.value = null;
+        });
+
+        // ---- Watchers ----
+        watch(
+            () => props.content?.initialValue,
+            newValue => {
+                const editor = editorInstance.value;
+                if (!editor) return;
+                const next = newValue || '';
+                if (next !== editor.getHTML()) {
+                    editor.commands.setContent(next, false);
+                    setValue(editor.getHTML());
+                }
+            }
+        );
+
+        watch(isEditable, value => {
+            editorInstance.value?.setEditable(value);
+        });
+
+        watch(
+            () => props.content?.placeholder,
+            () => {
+                const editor = editorInstance.value;
+                if (editor) editor.view.dispatch(editor.state.tr);
+            }
+        );
+
+        // Re-measure/flip once the menu is actually in the DOM, and whenever the
+        // positioning props change in the editor.
+        watch(
+            [
+                showMenu,
+                selectionRect,
+                () => props.content?.menuVerticalPosition,
+                () => props.content?.menuHorizontalPosition,
+                () => props.content?.menuAutoFlip,
+            ],
+            () => {
+                nextTick(resolvePlacement);
+            }
+        );
+
+        return {
+            wrapperEl,
+            editorEl,
+            menuEl,
+            isReadonly,
+            showMenu,
+            menuStyle,
+            rootStyle,
+        };
+    },
+};
+</script>
+
+<style lang="scss">
+.jp-rte {
+    position: relative;
+    width: 100%;
+
+    &.-readonly {
+        opacity: 0.85;
+    }
+
+    &__surface {
+        width: 100%;
+
+        .ProseMirror {
+            width: 100%;
+            box-sizing: border-box;
+            min-height: var(--rt-min-height, 160px);
+            padding: var(--rt-padding, 12px);
+            background: var(--rt-bg, #ffffff);
+            border: var(--rt-border, 1px solid #e5e7eb);
+            border-radius: var(--rt-radius, 8px);
+            font-family: var(--rt-font-family, inherit);
+            font-size: var(--rt-font-size, 16px);
+            color: var(--rt-color, #1f2937);
+            outline: none;
+
+            > * + * {
+                margin-top: 0.5em;
+            }
+
+            // Placeholder (shown on the empty first block).
+            p.is-editor-empty:first-child::before {
+                content: attr(data-placeholder);
+                float: left;
+                height: 0;
+                pointer-events: none;
+                color: var(--rt-placeholder-color, #9ca3af);
+            }
+
+            p {
+                font-family: var(--rt-paragraph-font-family, inherit);
+                font-size: var(--rt-paragraph-font-size, inherit);
+                font-weight: var(--rt-paragraph-font-weight, inherit);
+                color: var(--rt-paragraph-color, inherit);
+                line-height: var(--rt-paragraph-line-height, 1.5);
+                margin-top: var(--rt-paragraph-margin-top, 0);
+                margin-bottom: var(--rt-paragraph-margin-bottom, 0);
+            }
+
+            @each $h in h1, h2, h3, h4, h5, h6 {
+                #{$h} {
+                    font-family: var(--rt-#{$h}-font-family, inherit);
+                    font-size: var(--rt-#{$h}-font-size, inherit);
+                    font-weight: var(--rt-#{$h}-font-weight, 700);
+                    color: var(--rt-#{$h}-color, inherit);
+                    line-height: var(--rt-#{$h}-line-height, 1.2);
+                    margin-top: var(--rt-#{$h}-margin-top, 0);
+                    margin-bottom: var(--rt-#{$h}-margin-bottom, 0);
+                }
+            }
+
+            blockquote {
+                font-family: var(--rt-blockquote-font-family, inherit);
+                font-size: var(--rt-blockquote-font-size, inherit);
+                font-weight: var(--rt-blockquote-font-weight, inherit);
+                color: var(--rt-blockquote-color, #6b7280);
+                line-height: var(--rt-blockquote-line-height, 1.5);
+                margin-top: var(--rt-blockquote-margin-top, 0);
+                margin-bottom: var(--rt-blockquote-margin-bottom, 0);
+                padding-left: 1em;
+                border-left: 3px solid currentColor;
+            }
+
+            pre {
+                font-family: var(--rt-code-font-family, ui-monospace, monospace);
+                font-size: var(--rt-code-font-size, 0.9em);
+                font-weight: var(--rt-code-font-weight, inherit);
+                color: var(--rt-code-color, #e5e7eb);
+                line-height: var(--rt-code-line-height, 1.5);
+                margin-top: var(--rt-code-margin-top, 0);
+                margin-bottom: var(--rt-code-margin-bottom, 0);
+                background: #1f2937;
+                border-radius: 6px;
+                padding: 0.75em 1em;
+                overflow-x: auto;
+
+                code {
+                    background: none;
+                    color: inherit;
+                    padding: 0;
+                }
+            }
+
+            code {
+                font-family: ui-monospace, monospace;
+                background: rgba(0, 0, 0, 0.06);
+                padding: 0.1em 0.3em;
+                border-radius: 4px;
+            }
+
+            ul,
+            ol {
+                font-family: var(--rt-list-font-family, inherit);
+                font-size: var(--rt-list-font-size, inherit);
+                font-weight: var(--rt-list-font-weight, inherit);
+                color: var(--rt-list-color, inherit);
+                line-height: var(--rt-list-line-height, 1.5);
+                margin-top: var(--rt-list-margin-top, 0);
+                margin-bottom: var(--rt-list-margin-bottom, 0);
+                padding-left: 1.4em;
+            }
+
+            a {
+                font-family: var(--rt-link-font-family, inherit);
+                font-weight: var(--rt-link-font-weight, inherit);
+                color: var(--rt-link-color, #2563eb);
+                text-decoration: underline;
+                cursor: pointer;
+            }
+        }
+    }
+
+    &__menu {
+        position: absolute;
+        z-index: 1000;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--rt-menu-gap, 4px);
+        padding: var(--rt-menu-padding, 6px);
+        background: var(--rt-menu-bg, #111827);
+        border: var(--rt-menu-border, none);
+        border-radius: var(--rt-menu-radius, 8px);
+        box-shadow: var(--rt-menu-shadow, 0px 8px 24px 0px rgba(0, 0, 0, 0.24));
+        white-space: nowrap;
+    }
+
+    &__menu-layout {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--rt-menu-gap, 4px);
+        min-width: 24px;
+        min-height: 24px;
+    }
+}
+</style>

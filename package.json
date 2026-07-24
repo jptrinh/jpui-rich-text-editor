@@ -1,0 +1,21 @@
+{
+  "name": "rich-text-editor",
+  "version": "0.1.0",
+  "scripts": {
+    "build": "weweb build",
+    "serve": "weweb serve"
+  },
+  "devDependencies": {
+    "@weweb/cli": "latest"
+  },
+  "dependencies": {
+    "@tiptap/core": "2.27.2",
+    "@tiptap/starter-kit": "2.27.2",
+    "@tiptap/extension-underline": "2.27.2",
+    "@tiptap/extension-text-style": "2.27.2",
+    "@tiptap/extension-color": "2.27.2",
+    "@tiptap/extension-font-family": "2.27.2",
+    "@tiptap/extension-link": "2.27.2",
+    "@tiptap/extension-placeholder": "2.27.2"
+  }
+}
