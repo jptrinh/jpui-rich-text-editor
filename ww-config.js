@@ -80,6 +80,8 @@ export default {
             'forceOpenMenu',
             'debounce',
             'debounceDelay',
+            'formInfobox',
+            ['fieldName', 'customValidation', 'validation'],
         ],
     },
     properties: {
@@ -163,6 +165,69 @@ export default {
             },
             defaultValue: '400ms',
             hidden: content => !content?.debounce,
+        },
+
+        // ---- Form integration (only surfaced inside a ww-form-container) ----
+        form: {
+            editorOnly: true,
+            hidden: true,
+            defaultValue: false,
+        },
+        /* wwEditor:start */
+        formInfobox: {
+            type: 'InfoBox',
+            section: 'settings',
+            options: (_, sidePanelContent) => ({
+                variant: sidePanelContent.form?.name ? 'success' : 'warning',
+                icon: 'pencil',
+                title: sidePanelContent.form?.name || 'Unnamed form',
+                content: !sidePanelContent.form?.name && 'Give your form a meaningful name.',
+                cta: { label: 'Select form', action: 'selectForm' },
+            }),
+            hidden: (_, sidePanelContent) => !sidePanelContent.form?.uid,
+        },
+        /* wwEditor:end */
+        fieldName: {
+            label: { en: 'Field name' },
+            section: 'settings',
+            type: 'Text',
+            defaultValue: '',
+            states: true,
+            bindable: true,
+            responsive: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                type: 'string',
+                tooltip: 'A string value representing the field name for form submission.',
+            },
+            propertyHelp: { tooltip: 'The name of the field when used in a form submission.' },
+            /* wwEditor:end */
+            hidden: (_, sidePanelContent) => !sidePanelContent.form?.uid,
+        },
+        customValidation: {
+            label: { en: 'Custom validation' },
+            section: 'settings',
+            type: 'OnOff',
+            defaultValue: false,
+            states: true,
+            bindable: true,
+            responsive: true,
+            /* wwEditor:start */
+            bindingValidation: { type: 'boolean', tooltip: 'A boolean value: \n\n`true` or `false`' },
+            propertyHelp: { tooltip: 'Enable custom validation rules for this form field.' },
+            /* wwEditor:end */
+            hidden: (_, sidePanelContent) => !sidePanelContent.form?.uid,
+        },
+        validation: {
+            label: { en: 'Validation' },
+            section: 'settings',
+            type: 'Formula',
+            defaultValue: '',
+            states: true,
+            bindable: false,
+            responsive: true,
+            hidden: (content, sidePanelContent) =>
+                !sidePanelContent.form?.uid || !content.customValidation,
         },
 
         // ---- Selection menu dropzone (hidden array) ----

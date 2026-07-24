@@ -68,6 +68,7 @@ npm run build -- --name=rich-text-editor --type=wwobject
 | `Autofocus` | OnOff | Focus the editor on load. |
 | `Force open floating toolbar` | OnOff | **Editor mode only** — keep the menu open to drop/arrange buttons. No runtime effect. |
 | `Debounce change event` (+ delay) | OnOff / Length | Debounce the `change` event. |
+| `Field name`, `Custom validation`, `Validation` | Text / OnOff / Formula | Form settings — only shown when the editor sits inside a form. |
 
 ### Selection menu (Style panel)
 
@@ -127,7 +128,19 @@ The same snapshot is exposed globally as the **`state`** variable
 active state.
 
 The HTML content is **not** part of that snapshot — it lives in the **`value`**
-variable (form integration) and is emitted through the **`On change`** event.
+variable and is emitted through the **`On change`** event.
+
+---
+
+## Use it in a form
+
+Drop the editor inside a `ww-form-container` and it registers itself as a field:
+its HTML is submitted under **`Field name`** (defaults to the element name), it
+runs the optional **`Validation`** formula before submit, and a form reset
+restores **`Initial value`** — in the variable *and* in the visible content.
+
+Outside a form nothing changes: the injections fall back to no-ops and the form
+settings stay hidden in the panel.
 
 ---
 

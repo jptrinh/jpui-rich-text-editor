@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import { computed, ref, shallowRef, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
+import { computed, inject, ref, shallowRef, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -61,12 +61,46 @@ export default {
         /* wwEditor:end */
 
         // ---- Value exposure (HTML) as internal variable ----
-        const { setValue } = wwLib.wwVariable.useComponentVariable({
+        const { value: variableValue, setValue } = wwLib.wwVariable.useComponentVariable({
             uid: props.uid,
             name: 'value',
             type: 'string',
             defaultValue: computed(() => String(props.content?.initialValue ?? '')),
         });
+
+        // ---- Form integration ----
+        // Registers the field with a parent ww-form-container so its value is
+        // submitted, validated and reset with the form. The injections fall back to
+        // no-ops, so the component works exactly as before outside a form.
+        /* wwEditor:start */
+        const selectForm = inject('_wwForm:selectForm', () => {});
+        /* wwEditor:end */
+
+        // The form resets a field by calling setValue. The raw variable setter would
+        // leave the editor still showing the old content, so push it into TipTap too.
+        const setFormValue = html => {
+            const next = html ?? '';
+            setValue(next);
+            const editor = editorInstance.value;
+            if (editor && next !== editor.getHTML()) editor.commands.setContent(next, false);
+        };
+
+        const useForm = inject('_wwForm:useForm', () => {});
+        useForm(
+            variableValue,
+            {
+                fieldName: computed(() => props.content?.fieldName || props.wwElementState?.name),
+                validation: computed(() => props.content?.validation),
+                customValidation: computed(() => props.content?.customValidation),
+                initialValue: computed(() => props.content?.initialValue ?? ''),
+            },
+            {
+                elementState: props.wwElementState,
+                emit,
+                sidepanelFormPath: 'form',
+                setValue: setFormValue,
+            }
+        );
 
         // Live formatting state of the current selection, exposed as a component
         // variable so toolbar buttons can drive an "active" state, e.g.

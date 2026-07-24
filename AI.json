@@ -193,6 +193,24 @@
       "defaultValue": "#f3f4f6"
     },
     {
+      "name": "fieldName",
+      "description": "Name of the field in the submission data. Only shown inside a form; falls back to the element name.",
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "name": "customValidation",
+      "description": "Enable a custom validation formula for this form field. Only shown inside a form.",
+      "type": "boolean",
+      "defaultValue": false
+    },
+    {
+      "name": "validation",
+      "description": "Validation formula evaluated before submit, when customValidation is on.",
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
       "name": "paragraphFontFamily",
       "description": "Paragraph font family.",
       "type": "string"
@@ -849,7 +867,9 @@
     "The floating menu appears on text selection; in the WeWeb editor it stays open when forceOpenMenu is on so you can arrange buttons.",
     "Selection state is exposed twice: context.local.data['richText'] (instance-relative, for elements inside the dropzone) and the global \"state\" variable (variables['<uid>-state']).",
     "Output is HTML via the \"value\" variable and the change event.",
-    "Per-element-type typography is controlled by the style properties grouped by element (Paragraph, Heading 1-6, Quote, Code, Lists, Link)."
+    "Per-element-type typography is controlled by the style properties grouped by element (Paragraph, Heading 1-6, Quote, Code, Lists, Link).",
+    "Works as a form field inside a ww-form-container: the HTML value is submitted under fieldName, validated before submit, and reset to initialValue with the form. Outside a form it behaves as a standalone editor and the form settings stay hidden.",
+    "The editor is read-only on the WeWeb editor canvas, since typing there is never persisted; it edits normally in preview and at runtime."
   ],
   "examples": [
     {
