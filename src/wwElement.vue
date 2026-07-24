@@ -99,6 +99,12 @@ export default {
             return override === undefined ? !!props.content?.readonly : !!override;
         });
         const isEditable = computed(() => {
+            /* wwEditor:start */
+            // Never editable on the editor canvas: typing there is never persisted
+            // back to `initialValue`, so it would silently be lost on reload.
+            // Preview mode (isEditing === false) edits normally.
+            if (isEditing.value) return false;
+            /* wwEditor:end */
             const override = props.wwElementState?.props?.editable;
             const editable = override === undefined ? props.content?.editable !== false : !!override;
             return editable && !isReadonly.value;
