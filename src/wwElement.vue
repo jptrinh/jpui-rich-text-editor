@@ -82,7 +82,12 @@ export default {
             const next = html ?? '';
             setValue(next);
             const editor = editorInstance.value;
-            if (editor && next !== editor.getHTML()) editor.commands.setContent(next, false);
+            if (editor && next !== editor.getHTML()) {
+                editor.commands.setContent(next, false);
+                // setContent suppresses the update event, so re-sync explicitly or
+                // the exposed formatting state keeps describing the replaced content.
+                refreshState();
+            }
         };
 
         const useForm = inject('_wwForm:useForm', () => {});
@@ -498,6 +503,9 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
                 if (next !== editor.getHTML()) {
                     editor.commands.setContent(next, false);
                     setValue(editor.getHTML());
+                    // setContent suppresses the update event, so re-sync explicitly or
+                    // the exposed formatting state keeps describing the replaced content.
+                    refreshState();
                 }
                 // Emitted whenever the bound initial value changes, even if the
                 // content already matched it — the trigger reports the new source
