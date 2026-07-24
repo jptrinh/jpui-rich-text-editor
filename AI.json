@@ -187,6 +187,12 @@
       "defaultValue": "0px"
     },
     {
+      "name": "codeBackground",
+      "description": "Background color of code blocks and inline code.",
+      "type": "string",
+      "defaultValue": "#f3f4f6"
+    },
+    {
       "name": "paragraphFontFamily",
       "description": "Paragraph font family.",
       "type": "string"

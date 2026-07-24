@@ -85,6 +85,9 @@ Independent typography controls — **Font, Size, Weight, Color, Line height,
 Margin top/bottom** — grouped per element type: **Paragraph, Heading 1–6, Quote,
 Code, Lists, Link**.
 
+The **Code** group also has a **Background** control, and applies to both code
+blocks and inline code so the two stay visually consistent.
+
 ---
 
 ## Actions

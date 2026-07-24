@@ -93,7 +93,8 @@ export const CONTENT_TYPES = [
     { prefix: 'h5', label: 'Heading 5', selector: 'h5' },
     { prefix: 'h6', label: 'Heading 6', selector: 'h6' },
     { prefix: 'blockquote', label: 'Quote', selector: 'blockquote' },
-    { prefix: 'code', label: 'Code', selector: 'pre' },
+    // `extras` are extra property keys appended to this type's side-panel group.
+    { prefix: 'code', label: 'Code', selector: 'pre', extras: ['codeBackground'] },
     { prefix: 'list', label: 'Lists', selector: 'ul, ol' },
     { prefix: 'link', label: 'Link', selector: 'a' },
 ];

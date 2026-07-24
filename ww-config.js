@@ -7,7 +7,7 @@ const contentStyleProperties = CONTENT_TYPES.reduce(
 );
 
 // Build the collapsible side-panel groups for those style properties.
-const contentStyleGroups = CONTENT_TYPES.map(({ prefix, label }) => ({
+const contentStyleGroups = CONTENT_TYPES.map(({ prefix, label, extras = [] }) => ({
     label,
     isCollapsible: true,
     properties: [
@@ -18,6 +18,7 @@ const contentStyleGroups = CONTENT_TYPES.map(({ prefix, label }) => ({
         `${prefix}LineHeight`,
         `${prefix}MarginTop`,
         `${prefix}MarginBottom`,
+        ...extras,
     ],
 }));
 
@@ -379,6 +380,24 @@ export default {
             ...offsetLength,
             /* wwEditor:start */
             bindingValidation: { type: 'string', tooltip: 'Vertical offset of the floating menu, e.g. "-8px".' },
+            /* wwEditor:end */
+        },
+
+        // Shown inside the "Code" group; applies to both code blocks and inline code.
+        codeBackground: {
+            label: { en: 'Background', fr: 'Fond' },
+            type: 'Color',
+            section: 'style',
+            defaultValue: '#f3f4f6',
+            bindable: true,
+            responsive: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'background-color',
+                type: 'string',
+                tooltip: 'Background color of code blocks and inline code.',
+            },
+            propertyHelp: { tooltip: 'Background behind both code blocks and inline code.' },
             /* wwEditor:end */
         },
 

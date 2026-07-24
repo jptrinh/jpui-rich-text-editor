@@ -181,6 +181,7 @@ export default {
                 '--rt-border': props.content?.editorBorder || '1px solid #e5e7eb',
                 '--rt-radius': props.content?.editorBorderRadius || '8px',
                 '--rt-placeholder-color': props.content?.placeholderColor || '#9ca3af',
+                '--rt-code-bg': props.content?.codeBackground || '#f3f4f6',
                 '--rt-menu-bg': props.content?.menuBackground || '#111827',
                 '--rt-menu-border': props.content?.menuBorder || 'none',
                 '--rt-menu-radius': props.content?.menuBorderRadius || '8px',
@@ -599,19 +600,23 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
                 border-left: 3px solid currentColor;
             }
 
+            // Code blocks and inline code share the "Code" style group, so both
+            // follow the same font/size/weight/color/background settings.
             pre {
                 font-family: var(--rt-code-font-family, ui-monospace, monospace);
                 font-size: var(--rt-code-font-size, 0.9em);
                 font-weight: var(--rt-code-font-weight, inherit);
-                color: var(--rt-code-color, #e5e7eb);
+                color: var(--rt-code-color, #1f2937);
                 line-height: var(--rt-code-line-height, 1.5);
                 margin-top: var(--rt-code-margin-top, 0);
                 margin-bottom: var(--rt-code-margin-bottom, 0);
-                background: #1f2937;
+                background: var(--rt-code-bg, #f3f4f6);
                 border-radius: 6px;
                 padding: 0.75em 1em;
                 overflow-x: auto;
 
+                // The block already paints the background; its inner <code> must
+                // not paint a second one on top.
                 code {
                     background: none;
                     color: inherit;
@@ -620,8 +625,11 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
             }
 
             code {
-                font-family: ui-monospace, monospace;
-                background: rgba(0, 0, 0, 0.06);
+                font-family: var(--rt-code-font-family, ui-monospace, monospace);
+                font-size: var(--rt-code-font-size, 0.9em);
+                font-weight: var(--rt-code-font-weight, inherit);
+                color: var(--rt-code-color, #1f2937);
+                background: var(--rt-code-bg, #f3f4f6);
                 padding: 0.1em 0.3em;
                 border-radius: 4px;
             }
