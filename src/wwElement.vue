@@ -45,6 +45,10 @@ export default {
         const selectedText = ref('');
         const hasSelection = ref(false);
         const isFocused = ref(false);
+        // Local-context data (context.local.data['richText']). Kept as a ref and
+        // reassigned explicitly on every state change — a lazy `computed` was not
+        // re-tracked reliably by the dropzone bindings, so it looked frozen.
+        const localData = ref({});
         // Manual dismiss (via the closeToolbar action); reset on the next selection change.
         const menuDismissed = ref(false);
         // Selection geometry: edges relative to the wrapper (for absolute positioning)
@@ -73,6 +77,21 @@ export default {
             type: 'object',
             defaultValue: {},
         });
+
+        // Single source of truth for the exposed selection state. Pushes the same
+        // snapshot into BOTH the local context (ref) and the `state` variable so
+        // they always update together, on every selection / formatting change.
+        const syncExposed = () => {
+            const snapshot = {
+                ...editorState.value,
+                html: variableValue.value,
+                hasSelection: hasSelection.value,
+                selectedText: selectedText.value,
+                isEmpty: !!editorInstance.value?.isEmpty,
+            };
+            localData.value = snapshot;
+            setStateVar(snapshot);
+        };
 
         // ---- Editable / readonly (editor state overrides content) ----
         const isReadonly = computed(() => {
@@ -186,6 +205,7 @@ export default {
             const { from, to, empty } = editor.state.selection;
             selectedText.value = empty ? '' : editor.state.doc.textBetween(from, to, ' ');
             hasSelection.value = !empty;
+            syncExposed();
             if (empty) {
                 selectionRect.value = null;
                 return;
@@ -294,8 +314,7 @@ export default {
                 currentFontFamily: textStyle.fontFamily || null,
                 linkHref: editor.getAttributes('link')?.href || null,
             };
-            // Mirror into the exposed `state` variable for toolbar active states.
-            setStateVar({ ...editorState.value, hasSelection: hasSelection.value });
+            syncExposed();
         };
 
         const emitChange = html => {
@@ -344,14 +363,7 @@ export default {
             menuDismissed.value = true;
         };
 
-        // ---- Local context: state (data) + actions (methods) ----
-        const localData = computed(() => ({
-            ...editorState.value,
-            html: variableValue.value,
-            hasSelection: hasSelection.value,
-            selectedText: selectedText.value,
-            isEmpty: !!editorInstance.value?.isEmpty,
-        }));
+        // ---- Local context registration (data updated via syncExposed above) ----
 
         // Formatting actions are declared in ww-config.js `actions` (with typed
         // args) and exposed to WeWeb by returning them from setup() below. The

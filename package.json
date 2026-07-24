@@ -1,5 +1,5 @@
 {
-  "name": "rich-text-editor",
+  "name": "jpui-rich-text-editor",
   "version": "0.1.3",
   "scripts": {
     "build": "weweb build",

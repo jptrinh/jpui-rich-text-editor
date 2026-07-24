@@ -1,0 +1,860 @@
+{
+  "metadata": {
+    "name": "jpui-rich-text-editor",
+    "description": "A TipTap-based rich text editor whose formatting toolbar is a floating dropzone shown on text selection; buttons dropped inside are wired to the editor actions.",
+    "keywords": [
+      "rich text",
+      "editor",
+      "wysiwyg",
+      "tiptap",
+      "toolbar",
+      "bubble menu"
+    ],
+    "features": [
+      "Floating selection toolbar built as a customizable dropzone",
+      "Formatting actions: bold, italic, underline, strike, headings, lists, quote, code, color, font, link",
+      "Smart menu placement with auto-flip and offset controls",
+      "Live selection state exposed for active-state buttons",
+      "HTML value output and change/focus/blur/selectionChange events"
+    ],
+    "inherit": []
+  },
+  "properties": [
+    {
+      "name": "initialValue",
+      "description": "Initial HTML content of the editor.",
+      "type": "string",
+      "defaultValue": "<p>Edit me…</p>"
+    },
+    {
+      "name": "placeholder",
+      "description": "Placeholder shown when the editor is empty.",
+      "type": "string",
+      "defaultValue": "Start writing…"
+    },
+    {
+      "name": "editable",
+      "description": "Allow the user to edit the content.",
+      "type": "boolean",
+      "defaultValue": true
+    },
+    {
+      "name": "readonly",
+      "description": "Force read-only (overrides editable).",
+      "type": "boolean",
+      "defaultValue": false
+    },
+    {
+      "name": "autofocus",
+      "description": "Focus the editor on load.",
+      "type": "boolean",
+      "defaultValue": false
+    },
+    {
+      "name": "forceOpenMenu",
+      "description": "Editor mode only: keep the floating toolbar open to drop/arrange buttons.",
+      "type": "boolean",
+      "defaultValue": true
+    },
+    {
+      "name": "debounce",
+      "description": "Debounce the change event.",
+      "type": "boolean",
+      "defaultValue": false
+    },
+    {
+      "name": "debounceDelay",
+      "description": "Debounce delay, e.g. \"400ms\".",
+      "type": "string",
+      "defaultValue": "400ms"
+    },
+    {
+      "name": "editorFontFamily",
+      "description": "Base font family.",
+      "type": "string"
+    },
+    {
+      "name": "editorFontSize",
+      "description": "Base font size.",
+      "type": "string",
+      "defaultValue": "16px"
+    },
+    {
+      "name": "editorColor",
+      "description": "Base text color.",
+      "type": "string",
+      "defaultValue": "#1f2937"
+    },
+    {
+      "name": "editorBackground",
+      "description": "Editor background color.",
+      "type": "string",
+      "defaultValue": "#ffffff"
+    },
+    {
+      "name": "editorPadding",
+      "description": "Editor padding.",
+      "type": "string",
+      "defaultValue": "12px"
+    },
+    {
+      "name": "editorMinHeight",
+      "description": "Editor minimum height.",
+      "type": "string",
+      "defaultValue": "160px"
+    },
+    {
+      "name": "editorBorder",
+      "description": "Editor border (CSS shorthand).",
+      "type": "string",
+      "defaultValue": "1px solid #e5e7eb"
+    },
+    {
+      "name": "editorBorderRadius",
+      "description": "Editor border radius.",
+      "type": "string",
+      "defaultValue": "8px"
+    },
+    {
+      "name": "placeholderColor",
+      "description": "Placeholder text color.",
+      "type": "string",
+      "defaultValue": "#9ca3af"
+    },
+    {
+      "name": "menuVerticalPosition",
+      "description": "Floating menu vertical position: top | bottom.",
+      "type": "string",
+      "defaultValue": "top"
+    },
+    {
+      "name": "menuHorizontalPosition",
+      "description": "Floating menu horizontal position: left | center | right.",
+      "type": "string",
+      "defaultValue": "center"
+    },
+    {
+      "name": "menuAutoFlip",
+      "description": "Flip the menu to the opposite side when it would overflow the viewport.",
+      "type": "boolean",
+      "defaultValue": true
+    },
+    {
+      "name": "menuBackground",
+      "description": "Floating menu background color.",
+      "type": "string",
+      "defaultValue": "#111827"
+    },
+    {
+      "name": "menuBorder",
+      "description": "Floating menu border (CSS shorthand).",
+      "type": "string",
+      "defaultValue": "none"
+    },
+    {
+      "name": "menuBorderRadius",
+      "description": "Floating menu border radius.",
+      "type": "string",
+      "defaultValue": "8px"
+    },
+    {
+      "name": "menuPadding",
+      "description": "Floating menu padding.",
+      "type": "string",
+      "defaultValue": "6px"
+    },
+    {
+      "name": "menuGap",
+      "description": "Gap between floating menu items.",
+      "type": "string",
+      "defaultValue": "4px"
+    },
+    {
+      "name": "menuShadow",
+      "description": "Floating menu box-shadow.",
+      "type": "string"
+    },
+    {
+      "name": "menuOffsetX",
+      "description": "Horizontal offset of the floating menu.",
+      "type": "string",
+      "defaultValue": "0px"
+    },
+    {
+      "name": "menuOffsetY",
+      "description": "Vertical offset of the floating menu.",
+      "type": "string",
+      "defaultValue": "0px"
+    },
+    {
+      "name": "paragraphFontFamily",
+      "description": "Paragraph font family.",
+      "type": "string"
+    },
+    {
+      "name": "paragraphFontSize",
+      "description": "Paragraph font size.",
+      "type": "string"
+    },
+    {
+      "name": "paragraphFontWeight",
+      "description": "Paragraph font weight.",
+      "type": "string"
+    },
+    {
+      "name": "paragraphColor",
+      "description": "Paragraph text color.",
+      "type": "string"
+    },
+    {
+      "name": "paragraphLineHeight",
+      "description": "Paragraph line height.",
+      "type": "string"
+    },
+    {
+      "name": "paragraphMarginTop",
+      "description": "Paragraph top margin.",
+      "type": "string"
+    },
+    {
+      "name": "paragraphMarginBottom",
+      "description": "Paragraph bottom margin.",
+      "type": "string"
+    },
+    {
+      "name": "h1FontFamily",
+      "description": "Heading 1 font family.",
+      "type": "string"
+    },
+    {
+      "name": "h1FontSize",
+      "description": "Heading 1 font size.",
+      "type": "string"
+    },
+    {
+      "name": "h1FontWeight",
+      "description": "Heading 1 font weight.",
+      "type": "string"
+    },
+    {
+      "name": "h1Color",
+      "description": "Heading 1 text color.",
+      "type": "string"
+    },
+    {
+      "name": "h1LineHeight",
+      "description": "Heading 1 line height.",
+      "type": "string"
+    },
+    {
+      "name": "h1MarginTop",
+      "description": "Heading 1 top margin.",
+      "type": "string"
+    },
+    {
+      "name": "h1MarginBottom",
+      "description": "Heading 1 bottom margin.",
+      "type": "string"
+    },
+    {
+      "name": "h2FontFamily",
+      "description": "Heading 2 font family.",
+      "type": "string"
+    },
+    {
+      "name": "h2FontSize",
+      "description": "Heading 2 font size.",
+      "type": "string"
+    },
+    {
+      "name": "h2FontWeight",
+      "description": "Heading 2 font weight.",
+      "type": "string"
+    },
+    {
+      "name": "h2Color",
+      "description": "Heading 2 text color.",
+      "type": "string"
+    },
+    {
+      "name": "h2LineHeight",
+      "description": "Heading 2 line height.",
+      "type": "string"
+    },
+    {
+      "name": "h2MarginTop",
+      "description": "Heading 2 top margin.",
+      "type": "string"
+    },
+    {
+      "name": "h2MarginBottom",
+      "description": "Heading 2 bottom margin.",
+      "type": "string"
+    },
+    {
+      "name": "h3FontFamily",
+      "description": "Heading 3 font family.",
+      "type": "string"
+    },
+    {
+      "name": "h3FontSize",
+      "description": "Heading 3 font size.",
+      "type": "string"
+    },
+    {
+      "name": "h3FontWeight",
+      "description": "Heading 3 font weight.",
+      "type": "string"
+    },
+    {
+      "name": "h3Color",
+      "description": "Heading 3 text color.",
+      "type": "string"
+    },
+    {
+      "name": "h3LineHeight",
+      "description": "Heading 3 line height.",
+      "type": "string"
+    },
+    {
+      "name": "h3MarginTop",
+      "description": "Heading 3 top margin.",
+      "type": "string"
+    },
+    {
+      "name": "h3MarginBottom",
+      "description": "Heading 3 bottom margin.",
+      "type": "string"
+    },
+    {
+      "name": "h4FontFamily",
+      "description": "Heading 4 font family.",
+      "type": "string"
+    },
+    {
+      "name": "h4FontSize",
+      "description": "Heading 4 font size.",
+      "type": "string"
+    },
+    {
+      "name": "h4FontWeight",
+      "description": "Heading 4 font weight.",
+      "type": "string"
+    },
+    {
+      "name": "h4Color",
+      "description": "Heading 4 text color.",
+      "type": "string"
+    },
+    {
+      "name": "h4LineHeight",
+      "description": "Heading 4 line height.",
+      "type": "string"
+    },
+    {
+      "name": "h4MarginTop",
+      "description": "Heading 4 top margin.",
+      "type": "string"
+    },
+    {
+      "name": "h4MarginBottom",
+      "description": "Heading 4 bottom margin.",
+      "type": "string"
+    },
+    {
+      "name": "h5FontFamily",
+      "description": "Heading 5 font family.",
+      "type": "string"
+    },
+    {
+      "name": "h5FontSize",
+      "description": "Heading 5 font size.",
+      "type": "string"
+    },
+    {
+      "name": "h5FontWeight",
+      "description": "Heading 5 font weight.",
+      "type": "string"
+    },
+    {
+      "name": "h5Color",
+      "description": "Heading 5 text color.",
+      "type": "string"
+    },
+    {
+      "name": "h5LineHeight",
+      "description": "Heading 5 line height.",
+      "type": "string"
+    },
+    {
+      "name": "h5MarginTop",
+      "description": "Heading 5 top margin.",
+      "type": "string"
+    },
+    {
+      "name": "h5MarginBottom",
+      "description": "Heading 5 bottom margin.",
+      "type": "string"
+    },
+    {
+      "name": "h6FontFamily",
+      "description": "Heading 6 font family.",
+      "type": "string"
+    },
+    {
+      "name": "h6FontSize",
+      "description": "Heading 6 font size.",
+      "type": "string"
+    },
+    {
+      "name": "h6FontWeight",
+      "description": "Heading 6 font weight.",
+      "type": "string"
+    },
+    {
+      "name": "h6Color",
+      "description": "Heading 6 text color.",
+      "type": "string"
+    },
+    {
+      "name": "h6LineHeight",
+      "description": "Heading 6 line height.",
+      "type": "string"
+    },
+    {
+      "name": "h6MarginTop",
+      "description": "Heading 6 top margin.",
+      "type": "string"
+    },
+    {
+      "name": "h6MarginBottom",
+      "description": "Heading 6 bottom margin.",
+      "type": "string"
+    },
+    {
+      "name": "blockquoteFontFamily",
+      "description": "Quote font family.",
+      "type": "string"
+    },
+    {
+      "name": "blockquoteFontSize",
+      "description": "Quote font size.",
+      "type": "string"
+    },
+    {
+      "name": "blockquoteFontWeight",
+      "description": "Quote font weight.",
+      "type": "string"
+    },
+    {
+      "name": "blockquoteColor",
+      "description": "Quote text color.",
+      "type": "string"
+    },
+    {
+      "name": "blockquoteLineHeight",
+      "description": "Quote line height.",
+      "type": "string"
+    },
+    {
+      "name": "blockquoteMarginTop",
+      "description": "Quote top margin.",
+      "type": "string"
+    },
+    {
+      "name": "blockquoteMarginBottom",
+      "description": "Quote bottom margin.",
+      "type": "string"
+    },
+    {
+      "name": "codeFontFamily",
+      "description": "Code font family.",
+      "type": "string"
+    },
+    {
+      "name": "codeFontSize",
+      "description": "Code font size.",
+      "type": "string"
+    },
+    {
+      "name": "codeFontWeight",
+      "description": "Code font weight.",
+      "type": "string"
+    },
+    {
+      "name": "codeColor",
+      "description": "Code text color.",
+      "type": "string"
+    },
+    {
+      "name": "codeLineHeight",
+      "description": "Code line height.",
+      "type": "string"
+    },
+    {
+      "name": "codeMarginTop",
+      "description": "Code top margin.",
+      "type": "string"
+    },
+    {
+      "name": "codeMarginBottom",
+      "description": "Code bottom margin.",
+      "type": "string"
+    },
+    {
+      "name": "listFontFamily",
+      "description": "Lists font family.",
+      "type": "string"
+    },
+    {
+      "name": "listFontSize",
+      "description": "Lists font size.",
+      "type": "string"
+    },
+    {
+      "name": "listFontWeight",
+      "description": "Lists font weight.",
+      "type": "string"
+    },
+    {
+      "name": "listColor",
+      "description": "Lists text color.",
+      "type": "string"
+    },
+    {
+      "name": "listLineHeight",
+      "description": "Lists line height.",
+      "type": "string"
+    },
+    {
+      "name": "listMarginTop",
+      "description": "Lists top margin.",
+      "type": "string"
+    },
+    {
+      "name": "listMarginBottom",
+      "description": "Lists bottom margin.",
+      "type": "string"
+    },
+    {
+      "name": "linkFontFamily",
+      "description": "Link font family.",
+      "type": "string"
+    },
+    {
+      "name": "linkFontSize",
+      "description": "Link font size.",
+      "type": "string"
+    },
+    {
+      "name": "linkFontWeight",
+      "description": "Link font weight.",
+      "type": "string"
+    },
+    {
+      "name": "linkColor",
+      "description": "Link text color.",
+      "type": "string"
+    },
+    {
+      "name": "linkLineHeight",
+      "description": "Link line height.",
+      "type": "string"
+    },
+    {
+      "name": "linkMarginTop",
+      "description": "Link top margin.",
+      "type": "string"
+    },
+    {
+      "name": "linkMarginBottom",
+      "description": "Link bottom margin.",
+      "type": "string"
+    }
+  ],
+  "states": [],
+  "events": [
+    {
+      "name": "change",
+      "description": "Fires when the content changes.",
+      "payload": {
+        "value": "HTML string"
+      }
+    },
+    {
+      "name": "focus",
+      "description": "Fires when the editor gains focus.",
+      "payload": {}
+    },
+    {
+      "name": "blur",
+      "description": "Fires when the editor loses focus.",
+      "payload": {}
+    },
+    {
+      "name": "selectionChange",
+      "description": "Fires when the selection changes.",
+      "payload": {
+        "text": "selected text"
+      }
+    }
+  ],
+  "localContext": [
+    {
+      "name": "richText",
+      "description": "Live editor/selection state, available to elements inside the toolbar dropzone (and other descendants) as context.local.data['richText']. Updates on every selection and content change.",
+      "properties": [
+        {
+          "name": "isBold",
+          "type": "boolean",
+          "description": "True when the selection is bold."
+        },
+        {
+          "name": "isItalic",
+          "type": "boolean",
+          "description": "True when the selection is italic."
+        },
+        {
+          "name": "isUnderline",
+          "type": "boolean",
+          "description": "True when the selection is underlined."
+        },
+        {
+          "name": "isStrike",
+          "type": "boolean",
+          "description": "True when the selection is struck through."
+        },
+        {
+          "name": "isCode",
+          "type": "boolean",
+          "description": "True when the selection is inline code."
+        },
+        {
+          "name": "isCodeBlock",
+          "type": "boolean",
+          "description": "True when the block is a code block."
+        },
+        {
+          "name": "isBulletList",
+          "type": "boolean",
+          "description": "True when in a bullet list."
+        },
+        {
+          "name": "isOrderedList",
+          "type": "boolean",
+          "description": "True when in an ordered list."
+        },
+        {
+          "name": "isBlockquote",
+          "type": "boolean",
+          "description": "True when in a blockquote."
+        },
+        {
+          "name": "isLink",
+          "type": "boolean",
+          "description": "True when the selection is a link."
+        },
+        {
+          "name": "currentHeadingLevel",
+          "type": "number",
+          "description": "Heading level of the block (0 = paragraph)."
+        },
+        {
+          "name": "currentColor",
+          "type": "string",
+          "description": "Current text color, or null."
+        },
+        {
+          "name": "currentFontFamily",
+          "type": "string",
+          "description": "Current font family, or null."
+        },
+        {
+          "name": "linkHref",
+          "type": "string",
+          "description": "Href of the current link, or null."
+        },
+        {
+          "name": "hasSelection",
+          "type": "boolean",
+          "description": "True when there is a non-empty selection."
+        },
+        {
+          "name": "selectedText",
+          "type": "string",
+          "description": "The currently selected text."
+        },
+        {
+          "name": "isEmpty",
+          "type": "boolean",
+          "description": "True when the editor is empty."
+        },
+        {
+          "name": "html",
+          "type": "string",
+          "description": "Current content as HTML."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "label": "Toggle bold",
+      "actionName": "toggleBold",
+      "description": "Toggle bold on the selection."
+    },
+    {
+      "label": "Toggle italic",
+      "actionName": "toggleItalic",
+      "description": "Toggle italic on the selection."
+    },
+    {
+      "label": "Toggle underline",
+      "actionName": "toggleUnderline",
+      "description": "Toggle underline on the selection."
+    },
+    {
+      "label": "Toggle strikethrough",
+      "actionName": "toggleStrike",
+      "description": "Toggle strikethrough on the selection."
+    },
+    {
+      "label": "Toggle inline code",
+      "actionName": "toggleCode",
+      "description": "Toggle inline code on the selection."
+    },
+    {
+      "label": "Toggle code block",
+      "actionName": "toggleCodeBlock",
+      "description": "Toggle a code block."
+    },
+    {
+      "label": "Toggle bullet list",
+      "actionName": "toggleBulletList",
+      "description": "Toggle a bullet list."
+    },
+    {
+      "label": "Toggle ordered list",
+      "actionName": "toggleOrderedList",
+      "description": "Toggle an ordered list."
+    },
+    {
+      "label": "Toggle quote",
+      "actionName": "toggleBlockquote",
+      "description": "Toggle a blockquote."
+    },
+    {
+      "label": "Set paragraph",
+      "actionName": "setParagraph",
+      "description": "Convert the block to a paragraph."
+    },
+    {
+      "label": "Set heading",
+      "actionName": "setHeading",
+      "description": "Set the heading level.",
+      "args": [
+        {
+          "name": "level",
+          "type": "number",
+          "description": "Heading level 1-6."
+        }
+      ]
+    },
+    {
+      "label": "Set text color",
+      "actionName": "setColor",
+      "description": "Apply a text color.",
+      "args": [
+        {
+          "name": "color",
+          "type": "string",
+          "description": "Hex or CSS color."
+        }
+      ]
+    },
+    {
+      "label": "Clear text color",
+      "actionName": "unsetColor",
+      "description": "Remove the text color."
+    },
+    {
+      "label": "Set font family",
+      "actionName": "setFontFamily",
+      "description": "Apply a font family.",
+      "args": [
+        {
+          "name": "family",
+          "type": "string",
+          "description": "Font family name."
+        }
+      ]
+    },
+    {
+      "label": "Set link",
+      "actionName": "setLink",
+      "description": "Add or update a link.",
+      "args": [
+        {
+          "name": "href",
+          "type": "string",
+          "description": "Link URL."
+        }
+      ]
+    },
+    {
+      "label": "Remove link",
+      "actionName": "unsetLink",
+      "description": "Remove the link."
+    },
+    {
+      "label": "Clear formatting",
+      "actionName": "clearFormatting",
+      "description": "Remove all formatting."
+    },
+    {
+      "label": "Focus editor",
+      "actionName": "focus",
+      "description": "Focus the editor."
+    },
+    {
+      "label": "Close toolbar",
+      "actionName": "closeToolbar",
+      "description": "Hide the floating toolbar until the next selection."
+    }
+  ],
+  "slots": [
+    {
+      "name": "toolbarContent",
+      "description": "Dropzone for the floating selection toolbar. Drop buttons/icons here and wire each to one of the component actions; read context.local.data['richText'] (or the \"state\" variable) to show active states.",
+      "type": "element"
+    }
+  ],
+  "variables": [
+    {
+      "name": "value",
+      "description": "Current content as HTML.",
+      "type": "string",
+      "readonly": false
+    },
+    {
+      "name": "state",
+      "description": "Live formatting state of the current selection (same fields as the richText local context).",
+      "type": "object",
+      "readonly": true
+    }
+  ],
+  "specifications": [
+    "The formatting toolbar is not built in: drop your own buttons into the toolbarContent dropzone and wire them to the actions.",
+    "The floating menu appears on text selection; in the WeWeb editor it stays open when forceOpenMenu is on so you can arrange buttons.",
+    "Selection state is exposed twice: context.local.data['richText'] (instance-relative, for elements inside the dropzone) and the global \"state\" variable (variables['<uid>-state']).",
+    "Output is HTML via the \"value\" variable and the change event.",
+    "Per-element-type typography is controlled by the style properties grouped by element (Paragraph, Heading 1-6, Quote, Code, Lists, Link)."
+  ],
+  "examples": [
+    {
+      "description": "Minimal editor with a starting value",
+      "example": "{\"initialValue\": \"<p>Hello</p>\", \"editable\": true}"
+    }
+  ],
+  "dependencies": []
+}
