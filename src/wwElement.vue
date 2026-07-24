@@ -64,6 +64,16 @@ export default {
             defaultValue: computed(() => String(props.content?.initialValue ?? '')),
         });
 
+        // Live formatting state of the current selection, exposed as a component
+        // variable so toolbar buttons can drive an "active" state, e.g.
+        // variables['<uid>-state']?.isBold. Globally bindable (unlike local context).
+        const { setValue: setStateVar } = wwLib.wwVariable.useComponentVariable({
+            uid: props.uid,
+            name: 'state',
+            type: 'object',
+            defaultValue: {},
+        });
+
         // ---- Editable / readonly (editor state overrides content) ----
         const isReadonly = computed(() => {
             const override = props.wwElementState?.props?.readonly;
@@ -284,6 +294,8 @@ export default {
                 currentFontFamily: textStyle.fontFamily || null,
                 linkHref: editor.getAttributes('link')?.href || null,
             };
+            // Mirror into the exposed `state` variable for toolbar active states.
+            setStateVar({ ...editorState.value, hasSelection: hasSelection.value });
         };
 
         const emitChange = html => {
