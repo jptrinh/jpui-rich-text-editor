@@ -24,7 +24,9 @@ const lengthPx = (min = 0, max = 200) => ({
 // variables produced in wwElement.vue (e.g. `--rt-h1-font-size`). Labels are just
 // the field name — the group header (customStylePropertiesOrder) already names
 // the element type, so repeating it in every row only clutters the panel.
-export function typographyGroup(prefix) {
+// `labelEn` names the element type in the editor-only tooltips, where there is no
+// surrounding group header to give the property context.
+export function typographyGroup(prefix, labelEn) {
     return {
         [`${prefix}FontFamily`]: {
             label: { en: 'Font', fr: 'Police' },
@@ -32,11 +34,27 @@ export function typographyGroup(prefix) {
             section: 'style',
             bindable: true,
             responsive: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'font-family',
+                type: 'string',
+                tooltip: `Font family for ${labelEn}, e.g. \`"Inter, sans-serif"\`.`,
+            },
+            propertyHelp: { tooltip: `Font family applied to ${labelEn} content.` },
+            /* wwEditor:end */
         },
         [`${prefix}FontSize`]: {
             label: { en: 'Size', fr: 'Taille' },
             section: 'style',
             ...lengthPx(1, 120),
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'font-size',
+                type: 'string',
+                tooltip: `Font size for ${labelEn}, with a unit: \`"24px"\` | \`"1.5rem"\` | \`"1.2em"\`.`,
+            },
+            propertyHelp: { tooltip: `Font size applied to ${labelEn} content.` },
+            /* wwEditor:end */
         },
         [`${prefix}FontWeight`]: {
             label: { en: 'Weight', fr: 'Graisse' },
@@ -56,6 +74,14 @@ export function typographyGroup(prefix) {
             defaultValue: null,
             bindable: true,
             responsive: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'font-weight',
+                type: 'string',
+                tooltip: `Font weight for ${labelEn}. Valid values: \`"300"\` | \`"400"\` | \`"500"\` | \`"600"\` | \`"700"\` | \`"800"\`, or \`null\` to inherit.`,
+            },
+            propertyHelp: { tooltip: `Font weight applied to ${labelEn} content.` },
+            /* wwEditor:end */
         },
         [`${prefix}Color`]: {
             label: { en: 'Color', fr: 'Couleur' },
@@ -64,21 +90,53 @@ export function typographyGroup(prefix) {
             bindable: true,
             responsive: true,
             options: { nullable: true },
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'color',
+                type: 'string',
+                tooltip: `Text color for ${labelEn}, e.g. \`"#1f2937"\` or \`"rgba(0,0,0,0.8)"\`.`,
+            },
+            propertyHelp: { tooltip: `Text color applied to ${labelEn} content.` },
+            /* wwEditor:end */
         },
         [`${prefix}LineHeight`]: {
             label: { en: 'Line height', fr: 'Interligne' },
             section: 'style',
             ...lengthPx(0, 10),
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'line-height',
+                type: 'string',
+                tooltip: `Line height for ${labelEn}, with a unit: \`"24px"\` | \`"1.5em"\`.`,
+            },
+            propertyHelp: { tooltip: `Line height applied to ${labelEn} content.` },
+            /* wwEditor:end */
         },
         [`${prefix}MarginTop`]: {
             label: { en: 'Margin top', fr: 'Marge haut' },
             section: 'style',
             ...lengthPx(0, 120),
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'margin-top',
+                type: 'string',
+                tooltip: `Space above ${labelEn}, with a unit: \`"16px"\` | \`"1rem"\`.`,
+            },
+            propertyHelp: { tooltip: `Space above each ${labelEn} block.` },
+            /* wwEditor:end */
         },
         [`${prefix}MarginBottom`]: {
             label: { en: 'Margin bottom', fr: 'Marge bas' },
             section: 'style',
             ...lengthPx(0, 120),
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'margin-bottom',
+                type: 'string',
+                tooltip: `Space below ${labelEn}, with a unit: \`"16px"\` | \`"1rem"\`.`,
+            },
+            propertyHelp: { tooltip: `Space below each ${labelEn} block.` },
+            /* wwEditor:end */
         },
     };
 }

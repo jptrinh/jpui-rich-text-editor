@@ -97,6 +97,9 @@ export default {
                 type: 'string',
                 tooltip: 'HTML string used as the initial content of the editor.',
             },
+            propertyHelp: {
+                tooltip: 'Content the editor starts with. Changing it reloads the content and fires "On init value change".',
+            },
             /* wwEditor:end */
         },
         placeholder: {
@@ -105,6 +108,10 @@ export default {
             section: 'settings',
             defaultValue: 'Start writing…',
             bindable: true,
+            /* wwEditor:start */
+            bindingValidation: { type: 'string', tooltip: 'Text shown while the editor is empty.' },
+            propertyHelp: { tooltip: 'Shown in the first empty block, until the user types.' },
+            /* wwEditor:end */
         },
         editable: {
             label: { en: 'Editable' },
@@ -114,6 +121,9 @@ export default {
             bindable: true,
             /* wwEditor:start */
             bindingValidation: { type: 'boolean', tooltip: 'Allow the user to edit the content.' },
+            propertyHelp: {
+                tooltip: 'Turn off to display the content without letting the user change it. The editor is always read-only on the WeWeb canvas.',
+            },
             /* wwEditor:end */
         },
         readonly: {
@@ -124,6 +134,7 @@ export default {
             bindable: true,
             /* wwEditor:start */
             bindingValidation: { type: 'boolean', tooltip: 'Force read-only, overrides Editable.' },
+            propertyHelp: { tooltip: 'Takes priority over Editable — useful to lock the field from a formula.' },
             /* wwEditor:end */
         },
         autofocus: {
@@ -132,6 +143,10 @@ export default {
             section: 'settings',
             defaultValue: false,
             bindable: true,
+            /* wwEditor:start */
+            bindingValidation: { type: 'boolean', tooltip: 'A boolean value: \n\n`true` or `false`' },
+            propertyHelp: { tooltip: 'Place the cursor at the end of the content as soon as the page loads.' },
+            /* wwEditor:end */
         },
         forceOpenMenu: {
             label: { en: 'Force open floating toolbar' },
@@ -154,6 +169,11 @@ export default {
             type: 'OnOff',
             section: 'settings',
             defaultValue: false,
+            /* wwEditor:start */
+            propertyHelp: {
+                tooltip: 'Wait until the user stops typing before firing "On change" and updating the value. Useful when the change triggers a save or an API call.',
+            },
+            /* wwEditor:end */
         },
         debounceDelay: {
             label: { en: 'Debounce delay' },
@@ -165,6 +185,9 @@ export default {
             },
             defaultValue: '400ms',
             hidden: content => !content?.debounce,
+            /* wwEditor:start */
+            propertyHelp: { tooltip: 'How long to wait after the last keystroke, in milliseconds.' },
+            /* wwEditor:end */
         },
 
         // ---- Form integration (only surfaced inside a ww-form-container) ----
@@ -228,6 +251,11 @@ export default {
             responsive: true,
             hidden: (content, sidePanelContent) =>
                 !sidePanelContent.form?.uid || !content.customValidation,
+            /* wwEditor:start */
+            propertyHelp: {
+                tooltip: 'Formula evaluated before the form is submitted. Return true when the field is valid.',
+            },
+            /* wwEditor:end */
         },
 
         // ---- Selection menu dropzone (hidden array) ----
@@ -249,6 +277,16 @@ export default {
             section: 'style',
             bindable: true,
             responsive: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'font-family',
+                type: 'string',
+                tooltip: 'Font family, e.g. `"Inter, sans-serif"`.',
+            },
+            propertyHelp: {
+                tooltip: 'Default font for the whole editor. Each element type can override it in its own group.',
+            },
+            /* wwEditor:end */
         },
         editorFontSize: {
             label: { en: 'Base font size' },
@@ -258,6 +296,16 @@ export default {
             defaultValue: '16px',
             bindable: true,
             responsive: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'font-size',
+                type: 'string',
+                tooltip: 'A CSS size with a unit: `"16px"` | `"1rem"`.',
+            },
+            propertyHelp: {
+                tooltip: 'Default text size. Element types with their own Size setting override it.',
+            },
+            /* wwEditor:end */
         },
         editorColor: {
             label: { en: 'Base text color' },
@@ -266,6 +314,10 @@ export default {
             defaultValue: '#1f2937',
             bindable: true,
             responsive: true,
+            /* wwEditor:start */
+            bindingValidation: { cssSupports: 'color', type: 'string', tooltip: 'A CSS color.' },
+            propertyHelp: { tooltip: 'Default text color for content without a per-type color.' },
+            /* wwEditor:end */
         },
         editorBackground: {
             label: { en: 'Background' },
@@ -274,6 +326,14 @@ export default {
             defaultValue: '#ffffff',
             bindable: true,
             responsive: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'background-color',
+                type: 'string',
+                tooltip: 'A CSS color.',
+            },
+            propertyHelp: { tooltip: 'Background of the editing surface.' },
+            /* wwEditor:end */
         },
         editorPadding: {
             label: { en: 'Padding' },
@@ -283,6 +343,14 @@ export default {
             defaultValue: '12px',
             bindable: true,
             responsive: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'padding',
+                type: 'string',
+                tooltip: 'A CSS padding value: `"12px"` | `"12px 16px"`.',
+            },
+            propertyHelp: { tooltip: 'Space between the editor border and the text.' },
+            /* wwEditor:end */
         },
         editorMinHeight: {
             label: { en: 'Min height' },
@@ -292,6 +360,14 @@ export default {
             defaultValue: '160px',
             bindable: true,
             responsive: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'min-height',
+                type: 'string',
+                tooltip: 'A CSS length with a unit: `"160px"`.',
+            },
+            propertyHelp: { tooltip: 'The editor grows with its content but never shrinks below this.' },
+            /* wwEditor:end */
         },
         editorBorder: {
             label: { en: 'Border' },
@@ -304,6 +380,7 @@ export default {
             defaultValue: '1px solid #e5e7eb',
             /* wwEditor:start */
             bindingValidation: { cssSupports: 'border', type: 'string', tooltip: 'CSS border shorthand.' },
+            propertyHelp: { tooltip: 'Border around the editing surface.' },
             /* wwEditor:end */
         },
         editorBorderRadius: {
@@ -314,6 +391,14 @@ export default {
             defaultValue: '8px',
             bindable: true,
             responsive: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'border-radius',
+                type: 'string',
+                tooltip: 'A CSS radius: `"8px"` | `"8px 8px 0 0"`.',
+            },
+            propertyHelp: { tooltip: 'Corner rounding of the editing surface.' },
+            /* wwEditor:end */
         },
         placeholderColor: {
             label: { en: 'Placeholder color' },
@@ -322,6 +407,10 @@ export default {
             defaultValue: '#9ca3af',
             bindable: true,
             responsive: true,
+            /* wwEditor:start */
+            bindingValidation: { cssSupports: 'color', type: 'string', tooltip: 'A CSS color.' },
+            propertyHelp: { tooltip: 'Color of the placeholder text shown while the editor is empty.' },
+            /* wwEditor:end */
         },
 
         // ---- Selection menu positioning ----
@@ -340,6 +429,7 @@ export default {
             responsive: true,
             /* wwEditor:start */
             bindingValidation: { type: 'string', tooltip: 'Valid values: top | bottom' },
+            propertyHelp: { tooltip: 'Which side of the selected text the toolbar opens on.' },
             /* wwEditor:end */
         },
         menuHorizontalPosition: {
@@ -358,6 +448,7 @@ export default {
             responsive: true,
             /* wwEditor:start */
             bindingValidation: { type: 'string', tooltip: 'Valid values: left | center | right' },
+            propertyHelp: { tooltip: 'How the toolbar aligns horizontally against the selected text.' },
             /* wwEditor:end */
         },
         menuAutoFlip: {
@@ -380,6 +471,14 @@ export default {
             defaultValue: '#FFFFFF',
             bindable: true,
             responsive: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'background-color',
+                type: 'string',
+                tooltip: 'A CSS color.',
+            },
+            propertyHelp: { tooltip: 'Background of the floating toolbar.' },
+            /* wwEditor:end */
         },
         menuBorder: {
             label: { en: 'Menu border' },
@@ -392,6 +491,7 @@ export default {
             defaultValue: 'none',
             /* wwEditor:start */
             bindingValidation: { cssSupports: 'border', type: 'string', tooltip: 'CSS border shorthand.' },
+            propertyHelp: { tooltip: 'Border around the floating toolbar.' },
             /* wwEditor:end */
         },
         menuBorderRadius: {
@@ -402,6 +502,14 @@ export default {
             defaultValue: '8px',
             bindable: true,
             responsive: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'border-radius',
+                type: 'string',
+                tooltip: 'A CSS radius: `"8px"`.',
+            },
+            propertyHelp: { tooltip: 'Corner rounding of the floating toolbar.' },
+            /* wwEditor:end */
         },
         menuPadding: {
             label: { en: 'Menu padding' },
@@ -411,6 +519,14 @@ export default {
             defaultValue: '6px',
             bindable: true,
             responsive: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'padding',
+                type: 'string',
+                tooltip: 'A CSS padding value: `"6px"` | `"6px 8px"`.',
+            },
+            propertyHelp: { tooltip: 'Space between the toolbar edge and the buttons dropped inside it.' },
+            /* wwEditor:end */
         },
         menuGap: {
             label: { en: 'Menu gap' },
@@ -420,6 +536,14 @@ export default {
             defaultValue: '4px',
             bindable: true,
             responsive: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'gap',
+                type: 'string',
+                tooltip: 'A CSS length with a unit: `"4px"`.',
+            },
+            propertyHelp: { tooltip: 'Space between the buttons inside the toolbar.' },
+            /* wwEditor:end */
         },
         menuShadow: {
             label: { en: 'Menu shadow' },
@@ -428,6 +552,14 @@ export default {
             defaultValue: '0px 8px 24px 0px rgba(0, 0, 0, 0.24)',
             bindable: true,
             responsive: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'box-shadow',
+                type: 'string',
+                tooltip: 'A CSS box-shadow: `"0px 8px 24px 0px rgba(0,0,0,0.24)"` | `"none"`.',
+            },
+            propertyHelp: { tooltip: 'Drop shadow lifting the floating toolbar off the content.' },
+            /* wwEditor:end */
         },
         menuOffsetX: {
             label: { en: 'Menu offset X' },
@@ -436,6 +568,9 @@ export default {
             ...offsetLength,
             /* wwEditor:start */
             bindingValidation: { type: 'string', tooltip: 'Horizontal offset of the floating menu, e.g. "8px" or "-12px".' },
+            propertyHelp: {
+                tooltip: 'Nudges the toolbar sideways from its computed position. Negative moves it left.',
+            },
             /* wwEditor:end */
         },
         menuOffsetY: {
@@ -445,6 +580,9 @@ export default {
             ...offsetLength,
             /* wwEditor:start */
             bindingValidation: { type: 'string', tooltip: 'Vertical offset of the floating menu, e.g. "-8px".' },
+            propertyHelp: {
+                tooltip: 'Nudges the toolbar vertically from its computed position. Negative moves it up. Also taken into account when deciding whether to flip sides.',
+            },
             /* wwEditor:end */
         },
 
