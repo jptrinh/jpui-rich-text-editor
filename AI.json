@@ -606,6 +606,13 @@
       }
     },
     {
+      "name": "initValueChange",
+      "description": "Fires when the bound initial value changes from outside the component.",
+      "payload": {
+        "value": "HTML string"
+      }
+    },
+    {
       "name": "focus",
       "description": "Fires when the editor gains focus.",
       "payload": {}

@@ -149,6 +149,7 @@ settings stay hidden in the panel.
 | Event | Payload |
 |---|---|
 | `On change` | `{ value }` — HTML content |
+| `On init value change` | `{ value }` — the new initial value |
 | `On focus` / `On blur` | `{}` |
 | `On selection change` | `{ text }` — currently selected text |
 

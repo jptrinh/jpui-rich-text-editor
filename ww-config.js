@@ -471,6 +471,7 @@ export default {
     },
     triggerEvents: [
         { name: 'change', label: { en: 'On change' }, event: { value: '' } },
+        { name: 'initValueChange', label: { en: 'On init value change' }, event: { value: '' } },
         { name: 'focus', label: { en: 'On focus' }, event: {} },
         { name: 'blur', label: { en: 'On blur' }, event: {} },
         { name: 'selectionChange', label: { en: 'On selection change' }, event: { text: '' } },

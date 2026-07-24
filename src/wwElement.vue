@@ -499,6 +499,10 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
                     editor.commands.setContent(next, false);
                     setValue(editor.getHTML());
                 }
+                // Emitted whenever the bound initial value changes, even if the
+                // content already matched it — the trigger reports the new source
+                // value, not whether the document happened to differ.
+                emit('trigger-event', { name: 'initValueChange', event: { value: next } });
             }
         );
 
