@@ -21,23 +21,25 @@ const lengthPx = (min = 0, max = 200) => ({
 
 // One typography group for a given element type.
 // `prefix` is used both for the property keys (e.g. `h1FontSize`) and the CSS
-// variables produced in wwElement.vue (e.g. `--rt-h1-font-size`).
-export function typographyGroup(prefix, labelEn) {
+// variables produced in wwElement.vue (e.g. `--rt-h1-font-size`). Labels are just
+// the field name — the group header (customStylePropertiesOrder) already names
+// the element type, so repeating it in every row only clutters the panel.
+export function typographyGroup(prefix) {
     return {
         [`${prefix}FontFamily`]: {
-            label: { en: `${labelEn} · Font`, fr: `${labelEn} · Police` },
+            label: { en: 'Font', fr: 'Police' },
             type: 'FontFamily',
             section: 'style',
             bindable: true,
             responsive: true,
         },
         [`${prefix}FontSize`]: {
-            label: { en: `${labelEn} · Size`, fr: `${labelEn} · Taille` },
+            label: { en: 'Size', fr: 'Taille' },
             section: 'style',
             ...lengthPx(1, 120),
         },
         [`${prefix}FontWeight`]: {
-            label: { en: `${labelEn} · Weight`, fr: `${labelEn} · Graisse` },
+            label: { en: 'Weight', fr: 'Graisse' },
             type: 'TextSelect',
             section: 'style',
             options: {
@@ -56,7 +58,7 @@ export function typographyGroup(prefix, labelEn) {
             responsive: true,
         },
         [`${prefix}Color`]: {
-            label: { en: `${labelEn} · Color`, fr: `${labelEn} · Couleur` },
+            label: { en: 'Color', fr: 'Couleur' },
             type: 'Color',
             section: 'style',
             bindable: true,
@@ -64,17 +66,17 @@ export function typographyGroup(prefix, labelEn) {
             options: { nullable: true },
         },
         [`${prefix}LineHeight`]: {
-            label: { en: `${labelEn} · Line height`, fr: `${labelEn} · Interligne` },
+            label: { en: 'Line height', fr: 'Interligne' },
             section: 'style',
             ...lengthPx(0, 10),
         },
         [`${prefix}MarginTop`]: {
-            label: { en: `${labelEn} · Margin top` },
+            label: { en: 'Margin top', fr: 'Marge haut' },
             section: 'style',
             ...lengthPx(0, 120),
         },
         [`${prefix}MarginBottom`]: {
-            label: { en: `${labelEn} · Margin bottom` },
+            label: { en: 'Margin bottom', fr: 'Marge bas' },
             section: 'style',
             ...lengthPx(0, 120),
         },
