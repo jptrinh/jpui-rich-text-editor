@@ -33,12 +33,6 @@
       "defaultValue": "Text formatting"
     },
     {
-      "name": "focusRingColor",
-      "description": "Color of the ring drawn when the editor is focused by keyboard.",
-      "type": "string",
-      "defaultValue": "#2563eb"
-    },
-    {
       "name": "initialValue",
       "description": "Initial HTML content of the editor.",
       "type": "string",
@@ -115,36 +109,6 @@
       "description": "Base text color.",
       "type": "string",
       "defaultValue": "#1f2937"
-    },
-    {
-      "name": "editorBackground",
-      "description": "Editor background color.",
-      "type": "string",
-      "defaultValue": "#ffffff"
-    },
-    {
-      "name": "editorPadding",
-      "description": "Editor padding.",
-      "type": "string",
-      "defaultValue": "12px"
-    },
-    {
-      "name": "editorMinHeight",
-      "description": "Editor minimum height.",
-      "type": "string",
-      "defaultValue": "160px"
-    },
-    {
-      "name": "editorBorder",
-      "description": "Editor border (CSS shorthand).",
-      "type": "string",
-      "defaultValue": "1px solid #878e9c"
-    },
-    {
-      "name": "editorBorderRadius",
-      "description": "Editor border radius.",
-      "type": "string",
-      "defaultValue": "8px"
     },
     {
       "name": "placeholderColor",
@@ -973,7 +937,7 @@
     "At runtime the floating toolbar is teleported to the page root and positioned with position: fixed, so it is never clipped by an ancestor overflow and never trapped in a parent stacking context; use menuZIndex to layer it against app overlays. On the editor canvas it stays inside the component so WeWeb drag & drop into the dropzone keeps working.",
     "Accessibility: the editing area is role=textbox with aria-multiline and is named by ariaLabel; the floating toolbar is role=toolbar named by toolbarLabel, reachable with Alt+F10, dismissed with Escape, with arrow-key navigation between buttons.",
     "Buttons dropped into the toolbar must carry their own accessible name and be natively focusable (e.g. ww-button); a styled ww-div is not keyboard reachable.",
-    "Default colors meet WCAG AA: placeholder 4.8:1 and editor border 3.3:1; keyboard focus draws a :focus-visible ring controlled by focusRingColor.",
+    "The box around the editing area — background, padding, min height, border, radius — is not a component property: style the element instance itself in WeWeb. The same goes for the focused look: the component declares a \"focus\" state, so give the instance a focus-state style (e.g. a border or shadow) to indicate keyboard focus. The default placeholder color meets WCAG AA at 4.8:1.",
     "If the toolbar contains a dropdown/select/popup, enable manualClose: those render their panel at the page root, so focus leaves the toolbar and the default focus-based auto-close would dismiss it as soon as the panel opens. Then close it explicitly with the closeToolbar action."
   ],
   "examples": [

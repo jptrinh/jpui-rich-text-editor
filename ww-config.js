@@ -44,13 +44,7 @@ export default {
                     'editorFontFamily',
                     'editorFontSize',
                     'editorColor',
-                    'editorBackground',
-                    'editorPadding',
-                    'editorMinHeight',
-                    'editorBorder',
-                    'editorBorderRadius',
                     'placeholderColor',
-                    'focusRingColor',
                 ],
             },
             {
@@ -393,91 +387,9 @@ export default {
             propertyHelp: { tooltip: 'Default text color for content without a per-type color.' },
             /* wwEditor:end */
         },
-        editorBackground: {
-            label: { en: 'Background' },
-            type: 'Color',
-            section: 'style',
-            defaultValue: '#ffffff',
-            bindable: true,
-            responsive: true,
-            states: true,
-            classes: true,
-            /* wwEditor:start */
-            bindingValidation: {
-                cssSupports: 'background-color',
-                type: 'string',
-                tooltip: 'A CSS color.',
-            },
-            propertyHelp: { tooltip: 'Background of the editing surface.' },
-            /* wwEditor:end */
-        },
-        editorPadding: {
-            label: { en: 'Padding' },
-            type: 'Spacing',
-            section: 'style',
-            options: { unitChoices: [{ value: 'px', label: 'px', min: 0, max: 200 }], noRange: true },
-            defaultValue: '12px',
-            bindable: true,
-            responsive: true,
-            /* wwEditor:start */
-            bindingValidation: {
-                cssSupports: 'padding',
-                type: 'string',
-                tooltip: 'A CSS padding value: `"12px"` | `"12px 16px"`.',
-            },
-            propertyHelp: { tooltip: 'Space between the editor border and the text.' },
-            /* wwEditor:end */
-        },
-        editorMinHeight: {
-            label: { en: 'Min height' },
-            type: 'Length',
-            section: 'style',
-            options: { unitChoices: [{ value: 'px', label: 'px', min: 0, max: 2000 }], noRange: true },
-            defaultValue: '160px',
-            bindable: true,
-            responsive: true,
-            /* wwEditor:start */
-            bindingValidation: {
-                cssSupports: 'min-height',
-                type: 'string',
-                tooltip: 'A CSS length with a unit: `"160px"`.',
-            },
-            propertyHelp: { tooltip: 'The editor grows with its content but never shrinks below this.' },
-            /* wwEditor:end */
-        },
-        editorBorder: {
-            label: { en: 'Border' },
-            type: 'Border',
-            section: 'style',
-            states: true,
-            classes: true,
-            bindable: true,
-            responsive: true,
-            defaultValue: '1px solid #878e9c',
-            /* wwEditor:start */
-            bindingValidation: { cssSupports: 'border', type: 'string', tooltip: 'CSS border shorthand.' },
-            propertyHelp: { tooltip: 'Border around the editing surface.' },
-            /* wwEditor:end */
-        },
-        editorBorderRadius: {
-            label: { en: 'Border radius' },
-            type: 'Spacing',
-            section: 'style',
-            options: { unitChoices: [{ value: 'px', label: 'px', min: 0, max: 100 }], isCorner: true, noRange: true },
-            defaultValue: '8px',
-            bindable: true,
-            responsive: true,
-            states: true,
-            classes: true,
-            /* wwEditor:start */
-            bindingValidation: {
-                cssSupports: 'border-radius',
-                type: 'string',
-                tooltip: 'A CSS radius: `"8px"` | `"8px 8px 0 0"`.',
-            },
-            propertyHelp: { tooltip: 'Corner rounding of the editing surface.' },
-            /* wwEditor:end */
-        },
+        // Background, padding, min height, border, radius and the focus ring are
+        // deliberately NOT properties: they belong to the box, which is the
+        // instance's own WeWeb style (including its per-state values).
         placeholderColor: {
             label: { en: 'Placeholder color' },
             type: 'Color',
@@ -490,21 +402,6 @@ export default {
             /* wwEditor:start */
             bindingValidation: { cssSupports: 'color', type: 'string', tooltip: 'A CSS color.' },
             propertyHelp: { tooltip: 'Color of the placeholder text shown while the editor is empty.' },
-            /* wwEditor:end */
-        },
-
-        focusRingColor: {
-            label: { en: 'Focus ring color' },
-            type: 'Color',
-            section: 'style',
-            defaultValue: '#2563eb',
-            bindable: true,
-            responsive: true,
-            /* wwEditor:start */
-            bindingValidation: { cssSupports: 'color', type: 'string', tooltip: 'A CSS color.' },
-            propertyHelp: {
-                tooltip: 'Ring drawn around the editor when it is focused by keyboard. Keep it at 3:1 contrast against the background so it stays visible.',
-            },
             /* wwEditor:end */
         },
 

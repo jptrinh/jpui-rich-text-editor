@@ -363,16 +363,10 @@ export default {
                 '--rt-font-family': props.content?.editorFontFamily || 'inherit',
                 '--rt-font-size': props.content?.editorFontSize || '16px',
                 '--rt-color': props.content?.editorColor || '#1f2937',
-                '--rt-bg': props.content?.editorBackground || '#ffffff',
-                '--rt-padding': props.content?.editorPadding || '12px',
-                '--rt-min-height': props.content?.editorMinHeight || '160px',
-                '--rt-border': props.content?.editorBorder || '1px solid #878e9c',
-                '--rt-radius': props.content?.editorBorderRadius || '8px',
                 '--rt-placeholder-color': props.content?.placeholderColor || '#6b7280',
                 '--rt-code-bg': props.content?.codeBackground || '#f3f4f6',
                 '--rt-code-block-padding': props.content?.codeBlockPadding || '0.75em 1em',
                 '--rt-code-inline-padding': props.content?.codeInlinePadding || '0.1em 0.3em',
-                '--rt-focus-ring': props.content?.focusRingColor || '#2563eb',
                 '--rt-link-decoration': props.content?.linkTextDecoration || 'underline',
                 '--rt-quote-bar': props.content?.blockquoteBar || '3px solid #6b7280',
                 '--rt-quote-bg': props.content?.blockquoteBackground || 'transparent',
@@ -928,35 +922,33 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
 .jp-rte {
     position: relative;
     width: 100%;
+    // The box itself — background, padding, border, radius, min height, and the
+    // focused look — is the instance's own WeWeb style on this root. The editing
+    // surface below just fills it, so clicking anywhere inside puts the caret in.
+    flex-direction: column;
 
     &.-readonly {
         opacity: 0.85;
     }
 
     &__surface {
+        display: flex;
+        flex: 1;
         width: 100%;
 
         .ProseMirror {
             width: 100%;
+            flex: 1;
             box-sizing: border-box;
-            min-height: var(--rt-min-height, 160px);
-            padding: var(--rt-padding, 12px);
-            background: var(--rt-bg, #ffffff);
-            border: var(--rt-border, 1px solid #878e9c);
-            border-radius: var(--rt-radius, 8px);
+            cursor: text;
             font-family: var(--rt-font-family, inherit);
             font-size: var(--rt-font-size, 16px);
             color: var(--rt-color, #1f2937);
 
-            // A bare `outline: none` would leave the field with no focus indicator.
-            // Keep the native ring for keyboard users (:focus-visible) and drop it
-            // for pointer users, who already get the caret.
+            // No ring of our own: the focus indicator is the instance's `focus`
+            // state style (the component emits that state), so a browser outline
+            // on this inner element would sit inside — and fight — that box.
             outline: none;
-
-            &:focus-visible {
-                outline: 2px solid var(--rt-focus-ring, #2563eb);
-                outline-offset: 2px;
-            }
 
             > * + * {
                 margin-top: 0.5em;

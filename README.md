@@ -100,14 +100,17 @@ npm run build -- --name=jpui-rich-text-editor --type=wwobject
 | Property | Description |
 |---|---|
 | `Base font`, `Base font size`, `Base text color` | Defaults for all content; each element type can override them in its own group. |
-| `Background`, `Padding`, `Min height` | The editing surface. It grows with its content but never shrinks below `Min height`. |
-| `Border`, `Border radius` | Frame around the editing surface. |
 | `Placeholder color` | Color of the placeholder text. |
-| `Focus ring color` | Ring drawn when the editor is focused by keyboard. |
+
+The **box** itself — background, padding, min height, border, border radius — is
+not a component property: style the element instance directly in WeWeb, as you
+would any other element. The editing surface fills that box, so clicking anywhere
+inside it puts the caret in the text.
 
 The component declares the **`focus`** and **`readonly`** states, so you can pick
-them in the editor's state selector and give the background, text color, radius,
-border and placeholder color per-state values. `readonly` follows the **Read only**
+them in the editor's state selector and give the instance per-state styles.
+Use the `focus` state for the **focus indicator** — a border or shadow change —
+since the editor draws no ring of its own. `readonly` follows the **Read only**
 property and **Editable** being off — not the editor-canvas read-only override, so
 it isn't stuck on while you design.
 
@@ -233,11 +236,13 @@ What the component handles:
 - The toolbar is a `role="toolbar"` named by **`Toolbar accessible label`**,
   reachable with `Alt+F10`, dismissible with `Escape`, with arrow-key navigation
   between buttons. It stays open while focus is inside it.
-- Keyboard focus draws a visible ring (`:focus-visible` only, so pointer users
-  don't get one); pointer users still have the caret.
-- The default colors meet WCAG AA — body text 14.7:1, placeholder 4.8:1, links
-  5.2:1 (and underlined, not color-only), and the editor border 3.3:1 to satisfy
-  the 3:1 minimum for control boundaries.
+- The focus indicator is yours to set: give the instance a `focus`-state style
+  (border or shadow) with at least 3:1 contrast against its surroundings. The
+  component suppresses the browser's own outline, so without one there is no
+  visible focus indicator (WCAG 2.4.7).
+- The default text colors meet WCAG AA — body text 14.7:1, placeholder 4.8:1 and
+  links 5.2:1 (underlined, not color-only). Keep the instance's border at 3:1
+  against the page to satisfy the minimum for control boundaries.
 - The toolbar's appear animation respects `prefers-reduced-motion`.
 
 **What you have to do:**
