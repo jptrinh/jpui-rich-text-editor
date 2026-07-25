@@ -1,6 +1,6 @@
 {
   "name": "jpui-rich-text-editor",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "scripts": {
     "build": "weweb build",
     "serve": "weweb serve"
