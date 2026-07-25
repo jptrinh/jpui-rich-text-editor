@@ -116,7 +116,12 @@ Independent typography controls — **Font, Size, Weight, Color, Line height,
 Margin top/bottom** — grouped per element type: **Paragraph, Heading 1–6, Quote,
 Code, Lists, Link**.
 
-The **Code** group also has a **Background** control, and applies to both code
+The **Quote** group adds **Bar** (the vertical rule on the left — set it to `none` to
+remove it), **Background**, **Padding** (whose left value is the gap between the bar and
+the text) and **Margin left / right**. Those last two are applied as
+`margin-inline-start` / `margin-inline-end`, so they follow the text direction; they
+default to the 40px browsers put on quotes — set them to 0 to align a quote with the
+surrounding text. The **Code** group also has a **Background** control, and applies to both code
 blocks and inline code so the two stay visually consistent. The **Link** group
 adds a **Text decoration** control (`underline` by default — see
 [Accessibility](#accessibility) before removing it).

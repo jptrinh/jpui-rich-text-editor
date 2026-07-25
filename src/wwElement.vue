@@ -324,6 +324,11 @@ export default {
                 '--rt-code-bg': props.content?.codeBackground || '#f3f4f6',
                 '--rt-focus-ring': props.content?.focusRingColor || '#2563eb',
                 '--rt-link-decoration': props.content?.linkTextDecoration || 'underline',
+                '--rt-quote-bar': props.content?.blockquoteBar || '3px solid #6b7280',
+                '--rt-quote-bg': props.content?.blockquoteBackground || 'transparent',
+                '--rt-quote-padding': props.content?.blockquotePadding || '0px 0px 0px 1em',
+                '--rt-quote-margin-inline-start': props.content?.blockquoteMarginLeft || '40px',
+                '--rt-quote-margin-inline-end': props.content?.blockquoteMarginRight || '40px',
                 // Menu variables intentionally live on the menu element (see menuVars).
             };
             // Per-element-type typography variables (e.g. --rt-h1-font-size).
@@ -888,8 +893,14 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
                 line-height: var(--rt-blockquote-line-height, 1.5);
                 margin-top: var(--rt-blockquote-margin-top, 0);
                 margin-bottom: var(--rt-blockquote-margin-bottom, 0);
-                padding-left: 1em;
-                border-left: 3px solid currentColor;
+                // margin-top/bottom above do not touch the UA margin-inline, so
+                // without these the browser's 40px would be uncontrollable.
+                margin-inline-start: var(--rt-quote-margin-inline-start, 40px);
+                margin-inline-end: var(--rt-quote-margin-inline-end, 40px);
+                background: var(--rt-quote-bg, transparent);
+                padding: var(--rt-quote-padding, 0px 0px 0px 1em);
+                // The left padding is what separates the bar from the text.
+                border-left: var(--rt-quote-bar, 3px solid #6b7280);
             }
 
             // Code blocks and inline code share the "Code" style group, so both

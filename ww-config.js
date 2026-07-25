@@ -663,6 +663,129 @@ export default {
             /* wwEditor:end */
         },
 
+        // Shown inside the "Quote" group.
+        blockquoteBar: {
+            label: { en: 'Bar', fr: 'Barre' },
+            type: 'Border',
+            section: 'style',
+            states: true,
+            classes: true,
+            bindable: true,
+            responsive: true,
+            defaultValue: '3px solid #6b7280',
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'border',
+                type: 'string',
+                tooltip: 'A CSS border shorthand: `"3px solid #6b7280"` | `"none"`.',
+            },
+            propertyHelp: {
+                tooltip: 'The vertical bar down the left of a quote. Set it to "none" to remove it.',
+            },
+            /* wwEditor:end */
+        },
+        blockquoteBackground: {
+            label: { en: 'Background', fr: 'Fond' },
+            type: 'Color',
+            section: 'style',
+            defaultValue: null,
+            bindable: true,
+            responsive: true,
+            options: { nullable: true },
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'background-color',
+                type: 'string',
+                tooltip: 'A CSS color. Leave empty for no background.',
+            },
+            propertyHelp: { tooltip: 'Background behind the whole quote block.' },
+            /* wwEditor:end */
+        },
+        blockquotePadding: {
+            label: { en: 'Padding', fr: 'Marge intérieure' },
+            type: 'Spacing',
+            section: 'style',
+            options: {
+                unitChoices: [
+                    { value: 'px', label: 'px', min: 0, max: 200 },
+                    { value: 'em', label: 'em', min: 0, max: 10 },
+                ],
+                noRange: true,
+                useVar: true,
+            },
+            defaultValue: '0px 0px 0px 1em',
+            bindable: true,
+            responsive: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'padding',
+                type: 'string',
+                tooltip: 'A CSS padding value: `"16px"` | `"0px 0px 0px 16px"`.',
+            },
+            propertyHelp: {
+                tooltip: 'Space inside the quote block. The left value is the gap between the bar and the text.',
+            },
+            /* wwEditor:end */
+        },
+
+        // Browsers apply a UA margin-inline of 40px to blockquote. Declared
+        // explicitly (keeping that 40px default) so the indent is controllable
+        // instead of being an untouchable browser default.
+        blockquoteMarginLeft: {
+            label: { en: 'Margin left', fr: 'Marge gauche' },
+            type: 'Length',
+            section: 'style',
+            options: {
+                unitChoices: [
+                    { value: 'px', label: 'px', min: 0, max: 200 },
+                    { value: 'em', label: 'em', min: 0, max: 10 },
+                    { value: 'rem', label: 'rem', min: 0, max: 10 },
+                ],
+                noRange: true,
+                useVar: true,
+            },
+            defaultValue: '40px',
+            bindable: true,
+            responsive: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'margin-inline-start',
+                type: 'string',
+                tooltip: 'A CSS length with a unit: `"0px"` | `"40px"`.',
+            },
+            propertyHelp: {
+                tooltip: 'Applied as margin-inline-start, so it follows the text direction and flips in RTL. Defaults to the 40px browsers use for quotes — set it to 0 to align the quote with the surrounding text.',
+            },
+            /* wwEditor:end */
+        },
+        blockquoteMarginRight: {
+            label: { en: 'Margin right', fr: 'Marge droite' },
+            type: 'Length',
+            section: 'style',
+            options: {
+                unitChoices: [
+                    { value: 'px', label: 'px', min: 0, max: 200 },
+                    { value: 'em', label: 'em', min: 0, max: 10 },
+                    { value: 'rem', label: 'rem', min: 0, max: 10 },
+                ],
+                noRange: true,
+                useVar: true,
+            },
+            defaultValue: '40px',
+            bindable: true,
+            responsive: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'margin-inline-end',
+                type: 'string',
+                tooltip: 'A CSS length with a unit: `"0px"` | `"40px"`.',
+            },
+            propertyHelp: {
+                tooltip: 'Applied as margin-inline-end, so it follows the text direction and flips in RTL. Defaults to the 40px browsers use for quotes — set it to 0 to align the quote with the surrounding text.',
+            },
+            /* wwEditor:end */
+        },
+
         // Shown inside the "Link" group.
         linkTextDecoration: {
             label: { en: 'Text decoration', fr: 'Décoration' },

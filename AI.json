@@ -211,6 +211,35 @@
       "defaultValue": 1000
     },
     {
+      "name": "blockquoteBar",
+      "description": "CSS border shorthand for the vertical bar on the left of a quote.",
+      "type": "string",
+      "defaultValue": "3px solid #6b7280"
+    },
+    {
+      "name": "blockquoteBackground",
+      "description": "Background color of the quote block. Empty for none.",
+      "type": "string"
+    },
+    {
+      "name": "blockquotePadding",
+      "description": "Padding inside the quote block; the left value is the gap between the bar and the text.",
+      "type": "string",
+      "defaultValue": "0px 0px 0px 1em"
+    },
+    {
+      "name": "blockquoteMarginLeft",
+      "description": "Quote margin applied as margin-inline-start (direction-aware). Defaults to the 40px browsers use for quotes.",
+      "type": "string",
+      "defaultValue": "40px"
+    },
+    {
+      "name": "blockquoteMarginRight",
+      "description": "Quote margin applied as margin-inline-end (direction-aware). Defaults to the 40px browsers use for quotes.",
+      "type": "string",
+      "defaultValue": "40px"
+    },
+    {
       "name": "linkTextDecoration",
       "description": "Text decoration for links: underline | none | line-through | overline.",
       "type": "string",
