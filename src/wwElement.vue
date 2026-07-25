@@ -3,10 +3,14 @@
         <!-- Editor surface: TipTap mounts into this element -->
         <div ref="editorEl" class="jp-rte__surface"></div>
 
-        <!-- Floating selection menu = dropzone the user fills with their own buttons -->
-        <div v-if="showMenu" ref="menuEl" class="jp-rte__menu" :style="menuStyle">
-            <wwLayout path="toolbarContent" direction="row" class="jp-rte__menu-layout" />
-        </div>
+        <!-- Floating selection menu = dropzone the user fills with their own buttons.
+             Teleported to the page root at runtime so ancestor `overflow: hidden`
+             cannot clip it and it is not trapped in a parent stacking context. -->
+        <Teleport :to="teleportTo" :disabled="teleportDisabled">
+            <div v-if="showMenu" ref="menuEl" class="jp-rte__menu" :style="menuStyle">
+                <wwLayout path="toolbarContent" direction="row" class="jp-rte__menu-layout" />
+            </div>
+        </Teleport>
     </div>
 </template>
 
@@ -52,13 +56,31 @@ export default {
         // Manual dismiss (via the closeToolbar action); reset on the next selection change.
         const menuDismissed = ref(false);
         // Selection geometry: edges relative to the wrapper (for absolute positioning)
-        // plus raw viewport coords (for available-space / flip detection).
+        // plus raw viewport coords (for fixed positioning and flip detection).
         const selectionRect = ref(null);
         const resolvedPlacement = ref({ vertical: 'top', horizontal: 'center' });
+        // True when the selection has scrolled out of view. While teleported the menu
+        // is fixed, so it would otherwise hover over unrelated content.
+        const isSelectionOffscreen = ref(false);
 
         /* wwEditor:start */
         const isEditing = computed(() => props?.wwEditorState?.isEditing ?? false);
         /* wwEditor:end */
+
+        // ---- Teleport target ----
+        // Resolved through wwLib rather than a "body" selector string: a selector is
+        // resolved against the wrong document in the editor realm.
+        const teleportRoot = ref(null);
+        const teleportTo = computed(() => teleportRoot.value || 'body');
+        const teleportDisabled = computed(() => {
+            if (!teleportRoot.value) return true;
+            /* wwEditor:start */
+            // Keep the menu inside the component on the editor canvas so WeWeb's
+            // drag & drop and selection overlays keep working on the dropzone.
+            if (isEditing.value) return true;
+            /* wwEditor:end */
+            return false;
+        });
 
         // ---- Value exposure (HTML) as internal variable ----
         const { value: variableValue, setValue } = wwLib.wwVariable.useComponentVariable({
@@ -167,41 +189,68 @@ export default {
         // ---- Menu visibility & position ----
         const showMenu = computed(() => {
             if (menuDismissed.value) return false;
-            const onSelection = isEditable.value && isFocused.value && hasSelection.value;
             let forceOpen = false;
             /* wwEditor:start */
             forceOpen = isEditing.value && props.content?.forceOpenMenu !== false;
             /* wwEditor:end */
-            return forceOpen || onSelection;
+            if (forceOpen) return true;
+            if (isSelectionOffscreen.value) return false;
+            return isEditable.value && isFocused.value && hasSelection.value;
         });
 
         const MENU_GAP = 8; // inherent spacing between selection and menu
 
+        // The menu's own CSS variables. These MUST live on the menu element itself,
+        // not on the component root: once teleported the menu is no longer a DOM
+        // descendant, so inherited custom properties would silently fall back to
+        // their defaults and every menu styling property would stop applying.
+        const menuVars = computed(() => ({
+            '--rt-menu-bg': props.content?.menuBackground || '#111827',
+            '--rt-menu-border': props.content?.menuBorder || 'none',
+            '--rt-menu-radius': props.content?.menuBorderRadius || '8px',
+            '--rt-menu-padding': props.content?.menuPadding || '6px',
+            '--rt-menu-gap': props.content?.menuGap || '4px',
+            '--rt-menu-shadow': props.content?.menuShadow || '0px 8px 24px 0px rgba(0,0,0,0.24)',
+        }));
+
         const menuStyle = computed(() => {
             const offsetX = props.content?.menuOffsetX || '0px';
             const offsetY = props.content?.menuOffsetY || '0px';
+            const teleported = !teleportDisabled.value;
+            const base = {
+                ...menuVars.value,
+                // Teleported to the page root → fixed, positioned in viewport space.
+                // Left in place (editor canvas) → absolute inside the component.
+                position: teleported ? 'fixed' : 'absolute',
+                zIndex: props.content?.menuZIndex ?? 1000,
+            };
             const rect = selectionRect.value;
             if (!rect) {
                 // Fallback (e.g. editor mode with no live selection): pin near the top-left.
-                return {
-                    left: '8px',
-                    top: '8px',
-                    transform: `translate(${offsetX}, ${offsetY})`,
-                };
+                return { ...base, left: '8px', top: '8px', transform: `translate(${offsetX}, ${offsetY})` };
             }
             const { vertical, horizontal } = resolvedPlacement.value;
 
+            // Same anchors in either space: viewport coords when fixed, wrapper-relative
+            // coords when absolute.
+            const edgeLeft = teleported ? rect.vLeft : rect.left;
+            const edgeRight = teleported ? rect.vRight : rect.right;
+            const edgeCenterX = teleported ? rect.vCenterX : rect.centerX;
+            const edgeTop = teleported ? rect.vTop : rect.top;
+            const edgeBottom = teleported ? rect.vBottom : rect.bottom;
+
             // Horizontal anchor + translate
             const left =
-                horizontal === 'left' ? rect.left : horizontal === 'right' ? rect.right : rect.centerX;
+                horizontal === 'left' ? edgeLeft : horizontal === 'right' ? edgeRight : edgeCenterX;
             const tx = horizontal === 'left' ? '0' : horizontal === 'right' ? '-100%' : '-50%';
 
             // Vertical anchor + translate (menu sits above or below the selection)
-            const top = vertical === 'bottom' ? rect.bottom : rect.top;
+            const top = vertical === 'bottom' ? edgeBottom : edgeTop;
             const ty =
                 vertical === 'bottom' ? `calc(0% + ${MENU_GAP}px)` : `calc(-100% - ${MENU_GAP}px)`;
 
             return {
+                ...base,
                 left: `${left}px`,
                 top: `${top}px`,
                 transform: `translate(${tx}, ${ty}) translate(${offsetX}, ${offsetY})`,
@@ -221,12 +270,7 @@ export default {
                 '--rt-radius': props.content?.editorBorderRadius || '8px',
                 '--rt-placeholder-color': props.content?.placeholderColor || '#9ca3af',
                 '--rt-code-bg': props.content?.codeBackground || '#f3f4f6',
-                '--rt-menu-bg': props.content?.menuBackground || '#111827',
-                '--rt-menu-border': props.content?.menuBorder || 'none',
-                '--rt-menu-radius': props.content?.menuBorderRadius || '8px',
-                '--rt-menu-padding': props.content?.menuPadding || '6px',
-                '--rt-menu-gap': props.content?.menuGap || '4px',
-                '--rt-menu-shadow': props.content?.menuShadow || '0px 8px 24px 0px rgba(0,0,0,0.24)',
+                // Menu variables intentionally live on the menu element (see menuVars).
             };
             // Per-element-type typography variables (e.g. --rt-h1-font-size).
             for (const { prefix } of CONTENT_TYPES) {
@@ -254,6 +298,7 @@ export default {
             syncExposed();
             if (empty) {
                 selectionRect.value = null;
+                isSelectionOffscreen.value = false;
                 return;
             }
             try {
@@ -279,15 +324,34 @@ export default {
                     vRight,
                     vCenterX: (vLeft + vRight) / 2,
                 };
+                // Scrolled out of view: a fixed menu would hover over unrelated content.
+                const win = wwLib.getFrontWindow();
+                isSelectionOffscreen.value = win
+                    ? vBottom < 0 || vTop > win.innerHeight || vRight < 0 || vLeft > win.innerWidth
+                    : false;
                 resolvePlacement();
             } catch (e) {
                 selectionRect.value = null;
+                isSelectionOffscreen.value = false;
             }
         };
 
         const parsePx = value => {
             const n = parseFloat(value);
             return Number.isFinite(n) ? n : 0;
+        };
+
+        // A fixed menu does not scroll with the content, so recompute its anchor on
+        // scroll and resize. Coalesced through rAF: scroll fires far more often than
+        // we need to reposition.
+        let repositionFrame = null;
+        const scheduleReposition = () => {
+            const win = wwLib.getFrontWindow();
+            if (!win || repositionFrame !== null) return;
+            repositionFrame = win.requestAnimationFrame(() => {
+                repositionFrame = null;
+                if (showMenu.value || hasSelection.value) refreshSelectionAnchor();
+            });
         };
 
         // Decide the effective side, flipping to the opposite side when the menu
@@ -439,6 +503,15 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
 
         // ---- Lifecycle ----
         onMounted(() => {
+            // Teleport target: the front document's body, never a "body" selector.
+            teleportRoot.value = wwLib.getFrontDocument()?.body ?? null;
+
+            const win = wwLib.getFrontWindow();
+            // capture: scroll does not bubble, so capturing is what catches scrolling
+            // in any ancestor container, not just the page itself.
+            win?.addEventListener('scroll', scheduleReposition, { capture: true, passive: true });
+            win?.addEventListener('resize', scheduleReposition, { passive: true });
+
             editorInstance.value = new Editor({
                 element: editorEl.value,
                 editable: isEditable.value,
@@ -489,6 +562,10 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
         onBeforeUnmount(() => {
             clearTimeout(debounceTimeout.value);
             clearTimeout(blurTimeout.value);
+            const win = wwLib.getFrontWindow();
+            win?.removeEventListener('scroll', scheduleReposition, { capture: true });
+            win?.removeEventListener('resize', scheduleReposition);
+            if (repositionFrame !== null) win?.cancelAnimationFrame(repositionFrame);
             editorInstance.value?.destroy();
             editorInstance.value = null;
         });
@@ -549,6 +626,8 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
             showMenu,
             menuStyle,
             rootStyle,
+            teleportTo,
+            teleportDisabled,
             // Component actions (declared in ww-config.js `actions`)
             toggleBold,
             toggleItalic,
@@ -702,12 +781,15 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
         }
     }
 
-    // Single floating box. Positioning is done via the inline `transform`
-    // (translate); the appear animation uses the independent `scale` property so
-    // the two never collide. It scales from its own center (default origin).
+    // Single floating box. `position` and `z-index` are set inline, since the menu
+    // is fixed when teleported to the page root and absolute when left in place.
+    // Positioning uses the inline `transform` (translate); the appear animation uses
+    // the independent `scale` property so the two never collide. It scales from its
+    // own center (default origin).
+    //
+    // Note these are flat BEM class selectors (`.jp-rte__menu`), not descendants of
+    // `.jp-rte`, so the styles still match once the menu is teleported out.
     &__menu {
-        position: absolute;
-        z-index: 1000;
         display: inline-flex;
         align-items: center;
         gap: var(--rt-menu-gap, 4px);

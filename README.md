@@ -43,6 +43,12 @@ state.
 In the WeWeb editor the menu stays open (see `Force open floating toolbar`) so
 you can drop and arrange elements without needing a live selection.
 
+**Where it renders.** At runtime the toolbar is teleported to the page root and
+positioned with `position: fixed`, so a parent with `overflow: hidden` can't clip
+it and a parent stacking context can't bury it — use `Menu z-index` to layer it
+against your own overlays. On the editor canvas it deliberately stays inside the
+component instead, so WeWeb's drag & drop into the dropzone keeps working.
+
 ---
 
 ## Getting started
@@ -78,6 +84,7 @@ npm run build -- --name=rich-text-editor --type=wwobject
 | `Horizontal position` | `Align left` / `Center` / `Align right`. |
 | `Auto flip if no space` | Open on the opposite side if the menu would overflow the viewport. |
 | `Menu offset X` / `Menu offset Y` | Fine-tune placement (accepts negative px). |
+| `Menu z-index` | Layering against your app's overlays (the toolbar renders at the page root). |
 | `Background`, `Border`, `Radius`, `Padding`, `Gap`, `Shadow` | Menu appearance. |
 
 ### Content styles (Style panel)

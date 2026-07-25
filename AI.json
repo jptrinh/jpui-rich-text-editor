@@ -187,6 +187,12 @@
       "defaultValue": "0px"
     },
     {
+      "name": "menuZIndex",
+      "description": "Stacking order of the floating toolbar, which is rendered at the page root.",
+      "type": "number",
+      "defaultValue": 1000
+    },
+    {
       "name": "codeBackground",
       "description": "Background color of code blocks and inline code.",
       "type": "string",
@@ -876,7 +882,8 @@
     "Output is HTML via the \"value\" variable and the change event.",
     "Per-element-type typography is controlled by the style properties grouped by element (Paragraph, Heading 1-6, Quote, Code, Lists, Link).",
     "Works as a form field inside a ww-form-container: the HTML value is submitted under fieldName, validated before submit, and reset to initialValue with the form. Outside a form it behaves as a standalone editor and the form settings stay hidden.",
-    "The editor is read-only on the WeWeb editor canvas, since typing there is never persisted; it edits normally in preview and at runtime."
+    "The editor is read-only on the WeWeb editor canvas, since typing there is never persisted; it edits normally in preview and at runtime.",
+    "At runtime the floating toolbar is teleported to the page root and positioned with position: fixed, so it is never clipped by an ancestor overflow and never trapped in a parent stacking context; use menuZIndex to layer it against app overlays. On the editor canvas it stays inside the component so WeWeb drag & drop into the dropzone keeps working."
   ],
   "examples": [
     {

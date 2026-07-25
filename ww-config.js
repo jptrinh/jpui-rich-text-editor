@@ -67,6 +67,7 @@ export default {
                     'menuShadow',
                     'menuOffsetX',
                     'menuOffsetY',
+                    'menuZIndex',
                 ],
             },
             ...contentStyleGroups,
@@ -582,6 +583,20 @@ export default {
             bindingValidation: { type: 'string', tooltip: 'Vertical offset of the floating menu, e.g. "-8px".' },
             propertyHelp: {
                 tooltip: 'Nudges the toolbar vertically from its computed position. Negative moves it up. Also taken into account when deciding whether to flip sides.',
+            },
+            /* wwEditor:end */
+        },
+
+        menuZIndex: {
+            label: { en: 'Menu z-index' },
+            type: 'Number',
+            section: 'style',
+            defaultValue: 1000,
+            bindable: true,
+            /* wwEditor:start */
+            bindingValidation: { type: 'number', tooltip: 'Stacking order of the floating toolbar.' },
+            propertyHelp: {
+                tooltip: 'The toolbar is rendered at the page root, so this competes with your app-level overlays. Raise it if the toolbar appears behind something.',
             },
             /* wwEditor:end */
         },
