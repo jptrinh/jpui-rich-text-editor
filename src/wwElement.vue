@@ -922,7 +922,11 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
                 color: var(--rt-placeholder-color, #6b7280);
             }
 
-            p {
+            // Top-level paragraphs only. TipTap wraps quote and list-item content in
+            // <p>, so an unscoped `p` rule would repaint those with the Paragraph
+            // colour/typography and the Quote and Lists settings would never show.
+            // Direct children only, so nested paragraphs inherit their container.
+            > p {
                 font-family: var(--rt-paragraph-font-family, inherit);
                 font-size: var(--rt-paragraph-font-size, inherit);
                 font-weight: var(--rt-paragraph-font-weight, inherit);
@@ -930,6 +934,15 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
                 line-height: var(--rt-paragraph-line-height, 1.5);
                 margin-top: var(--rt-paragraph-margin-top, 0);
                 margin-bottom: var(--rt-paragraph-margin-bottom, 0);
+            }
+
+            // Nested paragraphs now inherit everything, but they would also pick the
+            // browser's 1em block margins back up, adding stray gaps inside quotes
+            // and list items. Their container owns the spacing instead.
+            blockquote p,
+            li p {
+                margin-top: 0;
+                margin-bottom: 0;
             }
 
             @each $h in h1, h2, h3, h4, h5, h6 {
