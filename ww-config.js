@@ -214,7 +214,7 @@ export default {
             /* wwEditor:start */
             bindingValidation: { type: 'boolean', tooltip: 'A boolean value: \n\n`true` or `false`' },
             propertyHelp: {
-                tooltip: 'Turn on when the toolbar contains a dropdown or popup. Those render their panel at the page root, so focus leaves the toolbar and it would otherwise close as soon as you open them. While on, the toolbar stays open once it appears — close it with the "Close toolbar" action, or Escape.',
+                tooltip: 'Turn on when the toolbar contains a dropdown or popup. Those render their panel at the page root, so focus leaves the toolbar and it would otherwise close as soon as you open them. While on, interacting with the toolbar never dismisses it — close it with the "Close toolbar" action, or Escape. Clicking away from the editor still closes it, as usual.',
             },
             /* wwEditor:end */
         },

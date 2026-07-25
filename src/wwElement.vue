@@ -67,7 +67,8 @@ export default {
         const isMenuFocused = ref(false);
         // Latched open: with `Manual close` the toolbar stays visible once it has
         // appeared, so a dropdown that renders its panel at the page root (moving
-        // focus out of the toolbar) doesn't dismiss it.
+        // focus out of the toolbar) doesn't dismiss it. The latch survives focus
+        // leaving, but not the user clicking away — see onDocumentPointerDown.
         const menuLatched = ref(false);
         // Whether focus entered the toolbar via the keyboard (Alt+F10) rather than a
         // pointer. Keyboard focus must hold the toolbar open unconditionally; pointer
@@ -647,6 +648,33 @@ export default {
             menuFocusFromKeyboard.value = false;
         };
 
+        // Controls inside the toolbar render their own UI at the page root — a select's
+        // listbox, a popover — so a pointer landing there is still the user operating the
+        // toolbar, not leaving it. Matched by role rather than by class so it holds for
+        // any dropped component, not just WeWeb's select.
+        const FLOATING_LAYER_SELECTOR =
+            '[role="listbox"], [role="menu"], [role="dialog"], [role="tree"], [role="grid"], [aria-modal="true"]';
+
+        // Duck-typed: the editor evaluates this bundle in a different realm from the
+        // canvas DOM, where `instanceof Element` is silently false.
+        const containsNode = (container, node) =>
+            !!container && typeof container.contains === 'function' && container.contains(node);
+
+        // `Manual close` exists so that interacting with the toolbar cannot dismiss it —
+        // not so the toolbar outlives the user's attention. A pointer landing outside the
+        // editor, the toolbar and any panel the toolbar opened is the user leaving, so it
+        // drops the latch and lets showMenu close as usual.
+        const onDocumentPointerDown = event => {
+            if (!showMenu.value) return;
+            const target = event?.target;
+            if (containsNode(menuEl.value, target)) return;
+            if (containsNode(editorInstance.value?.view?.dom, target)) return;
+            if (typeof target?.closest === 'function' && target.closest(FLOATING_LAYER_SELECTOR)) return;
+            menuLatched.value = false;
+            isMenuFocused.value = false;
+            menuFocusFromKeyboard.value = false;
+        };
+
         // focusout fires before focusin when moving between two buttons, so settle
         // first and then ask whether focus actually left the toolbar.
         const onMenuFocusOut = () => {
@@ -710,6 +738,10 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
             // in any ancestor container, not just the page itself.
             win?.addEventListener('scroll', scheduleReposition, { capture: true, passive: true });
             win?.addEventListener('resize', scheduleReposition, { passive: true });
+            // capture, so a control that stops propagation cannot keep the toolbar alive.
+            wwLib
+                .getFrontDocument()
+                ?.addEventListener('pointerdown', onDocumentPointerDown, { capture: true });
 
             editorInstance.value = new Editor({
                 element: editorEl.value,
@@ -778,6 +810,9 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
             const win = wwLib.getFrontWindow();
             win?.removeEventListener('scroll', scheduleReposition, { capture: true });
             win?.removeEventListener('resize', scheduleReposition);
+            wwLib
+                .getFrontDocument()
+                ?.removeEventListener('pointerdown', onDocumentPointerDown, { capture: true });
             if (repositionFrame !== null) win?.cancelAnimationFrame(repositionFrame);
             editorInstance.value?.destroy();
             editorInstance.value = null;
