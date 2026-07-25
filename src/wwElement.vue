@@ -759,12 +759,11 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
                         // extension, which TipTap only warns about and whose winning
                         // options are unspecified.
                         link: { openOnClick: false, autolink: false },
-                        // TrailingNode (StarterKit 3, on by default) keeps an empty
-                        // paragraph after any last block that is not one, so a document
-                        // ending in a code block or a rule is never a trap you cannot type
-                        // past. Unlike Notion's click target, that paragraph is a real node:
-                        // it is part of the document and so of the HTML this field submits.
-                        // Accepted deliberately — the affordance is worth a trailing `<p>`.
+                        // Off on purpose: TrailingNode is new in StarterKit 3 and keeps an
+                        // empty paragraph after any last block that is not one. That
+                        // paragraph is a real node, not a rendering affordance, so it would
+                        // add a stray `<p></p>` to the HTML this field submits.
+                        trailingNode: false,
                     }),
                     TextStyle,
                     Color,
