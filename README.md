@@ -264,5 +264,5 @@ that exists only as a toolbar button will not be.
 
 ## Tech
 
-Vue 3 (Composition API) · TipTap / ProseMirror (`@tiptap/*` `2.27.2`) ·
+Vue 3 (Composition API) · TipTap / ProseMirror (`@tiptap/*` `3.29.0`) ·
 `@weweb/cli`.
