@@ -237,6 +237,11 @@ export default {
 
         // ---- Menu visibility & position ----
         const showMenu = computed(() => {
+            // The author drives the editor from their own toolbar elsewhere on the page,
+            // so there is no floating one to show — on the canvas either, where it would
+            // only get in the way of a layout that does not use it. Checked before
+            // force-open so it also wins there.
+            if (props.content?.hideToolbar) return false;
             if (menuDismissed.value) return false;
             let forceOpen = false;
             /* wwEditor:start */

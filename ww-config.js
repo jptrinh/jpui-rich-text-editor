@@ -79,6 +79,7 @@ export default {
             'editable',
             'readonly',
             'autofocus',
+            'hideToolbar',
             'forceOpenMenu',
             'manualClose',
             'debounce',
@@ -189,12 +190,28 @@ export default {
             propertyHelp: { tooltip: 'Place the cursor at the end of the content as soon as the page loads.' },
             /* wwEditor:end */
         },
+        hideToolbar: {
+            label: { en: 'Hide floating toolbar', fr: 'Masquer la barre flottante' },
+            type: 'OnOff',
+            section: 'settings',
+            defaultValue: false,
+            bindable: true,
+            /* wwEditor:start */
+            bindingValidation: { type: 'boolean', tooltip: 'A boolean value: \n\n`true` or `false`' },
+            propertyHelp: {
+                tooltip: 'Turn on when you build your own toolbar elsewhere on the page and drive this editor with its actions (Toggle Bold, Set Heading, …) and exposed state. The floating toolbar then never appears — in the editor or at runtime — and Alt+F10 does nothing, since there is nothing to move focus to.',
+            },
+            /* wwEditor:end */
+        },
         forceOpenMenu: {
             label: { en: 'Force open floating toolbar' },
             type: 'OnOff',
             section: 'settings',
             defaultValue: true,
             bindable: true,
+            // Pointless while the toolbar is hidden — and misleading, since it looks
+            // like it would bring it back.
+            hidden: content => !!content?.hideToolbar,
             /* wwEditor:start */
             bindingValidation: {
                 type: 'boolean',
@@ -211,6 +228,7 @@ export default {
             section: 'settings',
             defaultValue: false,
             bindable: true,
+            hidden: content => !!content?.hideToolbar,
             /* wwEditor:start */
             bindingValidation: { type: 'boolean', tooltip: 'A boolean value: \n\n`true` or `false`' },
             propertyHelp: {

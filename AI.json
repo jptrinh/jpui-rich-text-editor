@@ -69,6 +69,13 @@
       "defaultValue": false
     },
     {
+      "name": "hideToolbar",
+      "description": "Hide the built-in floating toolbar entirely. Turn on when the app builds its own toolbar elsewhere and drives the editor through its actions and exposed state; the floating toolbar never appears, in the editor or at runtime.",
+      "type": "boolean",
+      "defaultValue": false,
+      "bindable": true
+    },
+    {
       "name": "forceOpenMenu",
       "description": "Editor mode only: keep the floating toolbar open to drop/arrange buttons.",
       "type": "boolean",
