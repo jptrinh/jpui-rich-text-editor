@@ -30,12 +30,11 @@
 import { computed, inject, ref, shallowRef, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import TextStyle from '@tiptap/extension-text-style';
-import Color from '@tiptap/extension-color';
-import FontFamily from '@tiptap/extension-font-family';
-import Link from '@tiptap/extension-link';
-import Placeholder from '@tiptap/extension-placeholder';
+// TipTap 3 ships Color and FontFamily inside the text-style package (the old
+// standalone packages are now re-export shims), and the utility extensions —
+// Placeholder among them — inside @tiptap/extensions.
+import { TextStyle, Color, FontFamily } from '@tiptap/extension-text-style';
+import { Placeholder } from '@tiptap/extensions';
 import { CONTENT_TYPES, TYPO_FIELDS } from './settings';
 
 export default {
@@ -131,7 +130,7 @@ export default {
             setValue(next);
             const editor = editorInstance.value;
             if (editor && next !== editor.getHTML()) {
-                editor.commands.setContent(next, false);
+                editor.commands.setContent(next, { emitUpdate: false });
                 // setContent suppresses the update event, so re-sync explicitly or
                 // the exposed formatting state keeps describing the replaced content.
                 refreshState();
@@ -753,12 +752,21 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
                 editable: isEditable.value,
                 content: props.content?.initialValue || '',
                 extensions: [
-                    StarterKit,
-                    Underline,
+                    StarterKit.configure({
+                        // Underline and Link are part of StarterKit since TipTap 3, so
+                        // they are configured here instead of being registered again —
+                        // a second registration under the same name is a duplicate
+                        // extension, which TipTap only warns about and whose winning
+                        // options are unspecified.
+                        link: { openOnClick: false, autolink: false },
+                        // Off on purpose: TrailingNode is new in StarterKit 3 and appends
+                        // an empty paragraph after any non-paragraph last block. That would
+                        // silently add a stray `<p></p>` to the HTML this field submits.
+                        trailingNode: false,
+                    }),
                     TextStyle,
                     Color,
                     FontFamily,
-                    Link.configure({ openOnClick: false, autolink: false }),
                     Placeholder.configure({ placeholder: () => props.content?.placeholder || '' }),
                 ],
                 autofocus: props.content?.autofocus ? 'end' : false,
@@ -831,7 +839,7 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
                 if (!editor) return;
                 const next = newValue || '';
                 if (next !== editor.getHTML()) {
-                    editor.commands.setContent(next, false);
+                    editor.commands.setContent(next, { emitUpdate: false });
                     setValue(editor.getHTML());
                     // setContent suppresses the update event, so re-sync explicitly or
                     // the exposed formatting state keeps describing the replaced content.
