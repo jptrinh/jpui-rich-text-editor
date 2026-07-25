@@ -16,6 +16,7 @@
                 :aria-label="toolbarLabel"
                 tabindex="-1"
                 @keydown="onMenuKeydown"
+                @pointerdown="onMenuPointerDown"
                 @focusin="onMenuFocusIn"
                 @focusout="onMenuFocusOut"
             >
@@ -68,6 +69,11 @@ export default {
         // appeared, so a dropdown that renders its panel at the page root (moving
         // focus out of the toolbar) doesn't dismiss it.
         const menuLatched = ref(false);
+        // Whether focus entered the toolbar via the keyboard (Alt+F10) rather than a
+        // pointer. Keyboard focus must hold the toolbar open unconditionally; pointer
+        // focus must not, or clicking the toolbar would keep it alive on its own and
+        // Manual close off would behave exactly like Manual close on.
+        const menuFocusFromKeyboard = ref(false);
         // Local-context data (context.local.data['richText']). Kept as a ref and
         // reassigned explicitly on every state change — a lazy `computed` was not
         // re-tracked reliably by the dropzone bindings, so it looked frozen.
@@ -247,8 +253,14 @@ export default {
             if (isSelectionOffscreen.value) return false;
             // Latched only waives the focus requirement, never the selection one.
             if (menuLatched.value && props.content?.manualClose) return true;
-            // Keep it open while the user is operating it from the keyboard.
-            return isFocused.value || isMenuFocused.value;
+            // Focus inside the toolbar keeps it open when it arrived by keyboard
+            // (Alt+F10 relies on this) or when Manual close is on. A plain click must
+            // not hold it open by itself — the editor regaining focus is what keeps
+            // the toolbar alive for ordinary buttons.
+            const heldByMenu =
+                isMenuFocused.value &&
+                (menuFocusFromKeyboard.value || !!props.content?.manualClose);
+            return isFocused.value || heldByMenu;
         });
 
         // Accessible name: the property wins, but if it is cleared we still derive
@@ -611,6 +623,7 @@ export default {
             const target = first || menuEl.value;
             if (!target || typeof target.focus !== 'function') return false;
             isMenuFocused.value = true;
+            menuFocusFromKeyboard.value = true;
             target.focus();
             return true;
         };
@@ -620,11 +633,18 @@ export default {
             menuDismissed.value = true;
             menuLatched.value = false;
             isMenuFocused.value = false;
+            menuFocusFromKeyboard.value = false;
             editorInstance.value?.commands.focus();
         };
 
         const onMenuFocusIn = () => {
             isMenuFocused.value = true;
+        };
+
+        // Fires before focusin, so the origin is already correct by the time
+        // showMenu re-evaluates.
+        const onMenuPointerDown = () => {
+            menuFocusFromKeyboard.value = false;
         };
 
         // focusout fires before focusin when moving between two buttons, so settle
@@ -633,12 +653,14 @@ export default {
             setTimeout(() => {
                 const menu = menuEl.value;
                 const active = wwLib.getFrontDocument()?.activeElement;
-                isMenuFocused.value = !!(
+                const stillInside = !!(
                     menu &&
                     active &&
                     typeof menu.contains === 'function' &&
                     menu.contains(active)
                 );
+                isMenuFocused.value = stillInside;
+                if (!stillInside) menuFocusFromKeyboard.value = false;
             }, 0);
         };
 
@@ -827,6 +849,7 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
             onMenuKeydown,
             onMenuFocusIn,
             onMenuFocusOut,
+            onMenuPointerDown,
             // Component actions (declared in ww-config.js `actions`)
             toggleBold,
             toggleItalic,
