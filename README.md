@@ -95,7 +95,9 @@ npm run build -- --name=jpui-rich-text-editor --type=wwobject
 
 The component declares the **`focus`** and **`readonly`** states, so you can pick
 them in the editor's state selector and give the background, text color, radius,
-border and placeholder color per-state values.
+border and placeholder color per-state values. `readonly` follows the **Read only**
+property and **Editable** being off — not the editor-canvas read-only override, so
+it isn't stuck on while you design.
 
 ### Selection menu (Style panel)
 

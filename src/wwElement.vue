@@ -46,7 +46,7 @@ export default {
         wwEditorState: { type: Object, required: false },
         /* wwEditor:end */
     },
-    emits: ['trigger-event'],
+    emits: ['trigger-event', 'add-state', 'remove-state'],
     setup(props, { emit }) {
         const wrapperEl = ref(null);
         const editorEl = ref(null);
@@ -195,6 +195,29 @@ export default {
             const editable = override === undefined ? props.content?.editable !== false : !!override;
             return editable && !isReadonly.value;
         });
+
+        // Drives the `readonly` WeWeb state. Uses the author's intent only — the
+        // editor-canvas read-only override is deliberately excluded, or the state
+        // would be pinned on the whole time you are designing.
+        const isReadonlyState = computed(() => {
+            if (isReadonly.value) return true;
+            const override = props.wwElementState?.props?.editable;
+            return override === undefined ? props.content?.editable === false : !override;
+        });
+
+        // WeWeb states on coded components are emit-driven: declaring them in
+        // ww-config only makes them selectable, the component has to announce when
+        // each one is active or the per-state styles never apply.
+        watch(
+            isReadonlyState,
+            active => emit(active ? 'add-state' : 'remove-state', 'readonly'),
+            { immediate: true }
+        );
+        watch(
+            isFocused,
+            active => emit(active ? 'add-state' : 'remove-state', 'focus'),
+            { immediate: true }
+        );
 
         const debounceDelay = computed(() => {
             const parsed = wwLib.wwUtils.getLengthUnit(props.content?.debounceDelay || '400ms');

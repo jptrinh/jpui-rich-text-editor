@@ -629,11 +629,11 @@
   "states": [
     {
       "name": "focus",
-      "description": "Active while the editing area has focus. Style properties marked state-aware can be given focus values."
+      "description": "Emitted while the editing area has focus. Style properties marked state-aware can be given focus values."
     },
     {
       "name": "readonly",
-      "description": "Active while the editor is read-only (via Read only, Editable off, or the WeWeb canvas)."
+      "description": "Emitted while the editor is read-only via the Read only property or Editable off. Excludes the editor-canvas read-only override, so the state is not pinned on while designing."
     }
   ],
   "events": [
