@@ -237,12 +237,18 @@ export default {
             /* wwEditor:end */
             if (forceOpen) return true;
             if (!isEditable.value) return false;
+            // No selection, or no anchor to position against, means there is nothing
+            // to format and nowhere to put the toolbar. The corner fallback in
+            // menuStyle exists only for the force-open editor canvas, so never reach
+            // it at runtime — not even while latched.
+            if (!hasSelection.value || !selectionRect.value) return false;
             // Still hide when the selection scrolls away — the toolbar is anchored to
             // it, so staying open would leave it floating over unrelated content.
             if (isSelectionOffscreen.value) return false;
+            // Latched only waives the focus requirement, never the selection one.
             if (menuLatched.value && props.content?.manualClose) return true;
             // Keep it open while the user is operating it from the keyboard.
-            return (isFocused.value || isMenuFocused.value) && hasSelection.value;
+            return isFocused.value || isMenuFocused.value;
         });
 
         // Accessible name: the property wins, but if it is cleared we still derive
@@ -257,6 +263,11 @@ export default {
                 'Rich text editor'
         );
         const toolbarLabel = computed(() => props.content?.toolbarLabel?.trim() || 'Text formatting');
+
+        // Drop the latch as soon as there is no selection left to format.
+        watch(hasSelection, has => {
+            if (!has) menuLatched.value = false;
+        });
 
         // Latch on the natural open condition rather than on showMenu itself, to
         // avoid feeding a computed back into its own dependency.
