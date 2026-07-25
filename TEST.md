@@ -54,13 +54,22 @@ If any of these fail, stop — the sync didn't take.
 - [ ] `Set text color` shows a **Color** argument field in the workflow editor
 - [ ] Same for `Set heading` (Level), `Set font family` (Family), `Set link` (URL)
 
-### Manual close, with a dropdown in the toolbar (Preview)
-- [ ] `Manual close` **off**: opening a `ww-input-select` in the toolbar closes the
-      toolbar *(the default, focus-based behaviour)*
-- [ ] `Manual close` **on**: the toolbar **stays open** while the select's panel is open
-- [ ] Pick a value → the format applies → your `closeToolbar` action closes the toolbar
-- [ ] `Escape` also closes it while latched
-- [ ] Toggle `Manual close` off while a toolbar is open → it stops staying open immediately
+### Manual close (Preview)
+
+The two settings must behave **differently** — that they once didn't was the bug.
+Check all four combinations:
+
+- [ ] **Off + ordinary button** (Bold) → toolbar **stays open**. Not because of menu
+      focus: the command refocuses the editor, and that is what holds it
+- [ ] **Off + a `ww-input-select`** → toolbar **closes** when the select takes focus
+      *(the select's panel renders at the page root, so focus leaves the toolbar)*
+- [ ] **On + the same select** → toolbar **stays open** while the panel is open
+- [ ] **Off + `Alt+F10`** → toolbar **stays open**; keyboard focus holds it regardless
+      of the setting
+- [ ] With it on: pick a value → the format applies → your `closeToolbar` action closes it
+- [ ] `Escape` closes it while latched
+- [ ] Toggle it off while a latched toolbar is open → it stops staying open immediately
+- [ ] Clicking a toolbar button then clicking into the page → toolbar closes (no lingering)
 
 ### Form integration (Preview)
 - [ ] Wrap in `ww-form-container`, set **Field name**, submit → the HTML arrives under
