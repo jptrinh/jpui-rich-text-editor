@@ -21,12 +21,13 @@ state.
   any WeWeb elements; buttons trigger the editor through exposed actions.
 - 🧭 **Smart positioning** — choose above/below and left/center/right, with
   **auto-flip** when the menu would overflow the viewport, plus offset X/Y.
-- 🔎 **Live formatting state** — every active mark/node is exposed as a local
-  variable so your buttons can show their active state.
+- 🔎 **Live formatting state** — every active mark/node is exposed both as a
+  global `state` variable and as local context, so your buttons can show their
+  active state.
 - 🎨 **Per-element-type styling** — independent typography controls for
   paragraph, each heading level, quote, code, lists and links.
 - 🧩 **NoCode-friendly** — HTML value as an internal variable (form-ready) and
-  `change` / `focus` / `blur` / `selectionChange` events.
+  `change` / `initValueChange` / `focus` / `blur` / `selectionChange` events.
 
 ---
 
@@ -43,6 +44,10 @@ state.
 In the WeWeb editor the menu stays open (see `Force open floating toolbar`) so
 you can drop and arrange elements without needing a live selection.
 
+**The editor is read-only on the WeWeb canvas.** That's deliberate: typing on the
+canvas is never written back to `Initial value`, so it would be silently lost on
+reload. Use Preview to type — editing works normally there and at runtime.
+
 **Where it renders.** At runtime the toolbar is teleported to the page root and
 positioned with `position: fixed`, so a parent with `overflow: hidden` can't clip
 it and a parent stacking context can't bury it — use `Menu z-index` to layer it
@@ -56,7 +61,7 @@ component instead, so WeWeb's drag & drop into the dropzone keeps working.
 ```bash
 npm i
 npm run serve --port=4040   # then add the custom element in WeWeb's developer popup
-npm run build -- --name=rich-text-editor --type=wwobject
+npm run build -- --name=jpui-rich-text-editor --type=wwobject
 ```
 
 ---
@@ -69,12 +74,21 @@ npm run build -- --name=rich-text-editor --type=wwobject
 |---|---|---|
 | `Initial value (HTML)` | Textarea | HTML string used as the starting content (reactive). |
 | `Placeholder` | Text | Shown when the editor is empty. |
-| `Editable` | OnOff | Allow the user to edit. |
+| `Editable` | OnOff | Allow the user to edit. Note the editor is always read-only on the WeWeb canvas — see below. |
 | `Read only` | OnOff | Force read-only (overrides Editable). |
 | `Autofocus` | OnOff | Focus the editor on load. |
 | `Force open floating toolbar` | OnOff | **Editor mode only** — keep the menu open to drop/arrange buttons. No runtime effect. |
 | `Debounce change event` (+ delay) | OnOff / Length | Debounce the `change` event. |
 | `Field name`, `Custom validation`, `Validation` | Text / OnOff / Formula | Form settings — only shown when the editor sits inside a form. |
+
+### Editor box (Style panel)
+
+| Property | Description |
+|---|---|
+| `Base font`, `Base font size`, `Base text color` | Defaults for all content; each element type can override them in its own group. |
+| `Background`, `Padding`, `Min height` | The editing surface. It grows with its content but never shrinks below `Min height`. |
+| `Border`, `Border radius` | Frame around the editing surface. |
+| `Placeholder color` | Color of the placeholder text. |
 
 ### Selection menu (Style panel)
 
