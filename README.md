@@ -79,7 +79,7 @@ npm run build -- --name=jpui-rich-text-editor --type=wwobject
 | `Autofocus` | OnOff | Focus the editor on load. |
 | `Force open floating toolbar` | OnOff | **Editor mode only** — keep the menu open to drop/arrange buttons. No runtime effect. |
 | `Debounce change event` (+ delay) | OnOff / Length | Debounce the `change` event. |
-| `Accessible label` | Text | Name screen readers announce for the editing area. Set this — see [Accessibility](#accessibility). |
+| `Accessible label` | Text | Name screen readers announce for the editing area. Defaults to `Rich text editor`; see [Accessibility](#accessibility). |
 | `Toolbar accessible label` | Text | Name screen readers announce for the floating toolbar. |
 | `Field name`, `Custom validation`, `Validation` | Text / OnOff / Formula | Form settings — only shown when the editor sits inside a form. |
 
@@ -205,6 +205,8 @@ What the component handles:
 
 - The editing area is exposed as `role="textbox"` with `aria-multiline="true"`,
   named by **`Accessible label`**, and `aria-readonly` tracks the read-only state.
+  If you clear that field the name is derived instead — `Field name`, else the
+  element's name in the tree — so the editor is never left unnamed.
 - The toolbar is a `role="toolbar"` named by **`Toolbar accessible label`**,
   reachable with `Alt+F10`, dismissible with `Escape`, with arrow-key navigation
   between buttons. It stays open while focus is inside it.
@@ -217,8 +219,9 @@ What the component handles:
 
 **What you have to do:**
 
-1. **Set `Accessible label`.** The default (`Rich text editor`) is only a
-   fallback — give it the field's real purpose, especially in a form.
+1. **Set `Accessible label`.** It ships as `Rich text editor`, which is only a
+   placeholder — give it the field's real purpose, especially in a form or when
+   there is more than one editor on the page.
 2. **Give every dropped toolbar button an accessible name.** Icon-only buttons
    are the most common failure in this pattern: an icon with no text is
    announced as nothing. Use a `ww-button` with text, or add an `aria-label`.

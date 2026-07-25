@@ -214,7 +214,18 @@ export default {
             return isEditable.value && (isFocused.value || isMenuFocused.value) && hasSelection.value;
         });
 
-        const toolbarLabel = computed(() => props.content?.toolbarLabel || 'Text formatting');
+        // Accessible name: the property wins, but if it is cleared we still derive
+        // something meaningful rather than falling straight to a generic string —
+        // the author already named this field as the form field and in the element
+        // tree (same precedence the form integration uses).
+        const accessibleName = computed(
+            () =>
+                props.content?.ariaLabel?.trim() ||
+                props.content?.fieldName?.trim() ||
+                props.wwElementState?.name ||
+                'Rich text editor'
+        );
+        const toolbarLabel = computed(() => props.content?.toolbarLabel?.trim() || 'Text formatting');
 
         const MENU_GAP = 8; // inherent spacing between selection and menu
 
@@ -512,7 +523,7 @@ export default {
             if (!dom || typeof dom.setAttribute !== 'function') return;
             dom.setAttribute('role', 'textbox');
             dom.setAttribute('aria-multiline', 'true');
-            dom.setAttribute('aria-label', props.content?.ariaLabel || 'Rich text editor');
+            dom.setAttribute('aria-label', accessibleName.value);
             dom.setAttribute('aria-readonly', isEditable.value ? 'false' : 'true');
         };
 
@@ -712,7 +723,7 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
             syncA11yAttributes();
         });
 
-        watch(() => props.content?.ariaLabel, syncA11yAttributes);
+        watch(accessibleName, syncA11yAttributes);
 
         watch(
             () => props.content?.placeholder,
