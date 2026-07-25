@@ -64,6 +64,10 @@ export default {
         // blurred at that point, so without this the menu would unmount from under
         // the very button the user just focused.
         const isMenuFocused = ref(false);
+        // Latched open: with `Manual close` the toolbar stays visible once it has
+        // appeared, so a dropdown that renders its panel at the page root (moving
+        // focus out of the toolbar) doesn't dismiss it.
+        const menuLatched = ref(false);
         // Local-context data (context.local.data['richText']). Kept as a ref and
         // reassigned explicitly on every state change — a lazy `computed` was not
         // re-tracked reliably by the dropzone bindings, so it looked frozen.
@@ -232,9 +236,13 @@ export default {
             forceOpen = isEditing.value && props.content?.forceOpenMenu !== false;
             /* wwEditor:end */
             if (forceOpen) return true;
+            if (!isEditable.value) return false;
+            // Still hide when the selection scrolls away — the toolbar is anchored to
+            // it, so staying open would leave it floating over unrelated content.
             if (isSelectionOffscreen.value) return false;
+            if (menuLatched.value && props.content?.manualClose) return true;
             // Keep it open while the user is operating it from the keyboard.
-            return isEditable.value && (isFocused.value || isMenuFocused.value) && hasSelection.value;
+            return (isFocused.value || isMenuFocused.value) && hasSelection.value;
         });
 
         // Accessible name: the property wins, but if it is cleared we still derive
@@ -249,6 +257,18 @@ export default {
                 'Rich text editor'
         );
         const toolbarLabel = computed(() => props.content?.toolbarLabel?.trim() || 'Text formatting');
+
+        // Latch on the natural open condition rather than on showMenu itself, to
+        // avoid feeding a computed back into its own dependency.
+        watch(
+            () =>
+                isEditable.value &&
+                hasSelection.value &&
+                (isFocused.value || isMenuFocused.value),
+            open => {
+                if (open && props.content?.manualClose) menuLatched.value = true;
+            }
+        );
 
         const MENU_GAP = 8; // inherent spacing between selection and menu
 
@@ -544,6 +564,7 @@ export default {
         const focus = () => editorInstance.value?.commands.focus();
         const closeToolbar = () => {
             menuDismissed.value = true;
+            menuLatched.value = false;
         };
 
         // ---- Accessibility ----
@@ -586,6 +607,7 @@ export default {
         // Leave the toolbar: hide it and put the caret back where it was.
         const dismissToolbar = () => {
             menuDismissed.value = true;
+            menuLatched.value = false;
             isMenuFocused.value = false;
             editorInstance.value?.commands.focus();
         };
@@ -677,6 +699,7 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
                         if (event.altKey && event.key === 'F10') return focusToolbar();
                         if (event.key === 'Escape' && showMenu.value && !menuDismissed.value) {
                             menuDismissed.value = true;
+                            menuLatched.value = false;
                             return true;
                         }
                         return false;

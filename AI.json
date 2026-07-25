@@ -75,6 +75,12 @@
       "defaultValue": true
     },
     {
+      "name": "manualClose",
+      "description": "Keep the floating toolbar open once it appears, until the closeToolbar action or Escape. Use when the toolbar contains a dropdown or popup, whose panel renders at the page root and would otherwise dismiss the toolbar on click.",
+      "type": "boolean",
+      "defaultValue": false
+    },
+    {
       "name": "debounce",
       "description": "Debounce the change event.",
       "type": "boolean",
@@ -960,7 +966,8 @@
     "At runtime the floating toolbar is teleported to the page root and positioned with position: fixed, so it is never clipped by an ancestor overflow and never trapped in a parent stacking context; use menuZIndex to layer it against app overlays. On the editor canvas it stays inside the component so WeWeb drag & drop into the dropzone keeps working.",
     "Accessibility: the editing area is role=textbox with aria-multiline and is named by ariaLabel; the floating toolbar is role=toolbar named by toolbarLabel, reachable with Alt+F10, dismissed with Escape, with arrow-key navigation between buttons.",
     "Buttons dropped into the toolbar must carry their own accessible name and be natively focusable (e.g. ww-button); a styled ww-div is not keyboard reachable.",
-    "Default colors meet WCAG AA: placeholder 4.8:1 and editor border 3.3:1; keyboard focus draws a :focus-visible ring controlled by focusRingColor."
+    "Default colors meet WCAG AA: placeholder 4.8:1 and editor border 3.3:1; keyboard focus draws a :focus-visible ring controlled by focusRingColor.",
+    "If the toolbar contains a dropdown/select/popup, enable manualClose: those render their panel at the page root, so focus leaves the toolbar and the default focus-based auto-close would dismiss it as soon as the panel opens. Then close it explicitly with the closeToolbar action."
   ],
   "examples": [
     {

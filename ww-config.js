@@ -80,6 +80,7 @@ export default {
             'readonly',
             'autofocus',
             'forceOpenMenu',
+            'manualClose',
             'debounce',
             'debounceDelay',
             ['ariaLabel', 'toolbarLabel'],
@@ -201,6 +202,19 @@ export default {
             },
             propertyHelp: {
                 tooltip: 'When ON, the floating selection menu stays open in the WeWeb editor so you can drop elements into it. When OFF, it only appears on text selection, like at runtime.',
+            },
+            /* wwEditor:end */
+        },
+        manualClose: {
+            label: { en: 'Manual close', fr: 'Fermeture manuelle' },
+            type: 'OnOff',
+            section: 'settings',
+            defaultValue: false,
+            bindable: true,
+            /* wwEditor:start */
+            bindingValidation: { type: 'boolean', tooltip: 'A boolean value: \n\n`true` or `false`' },
+            propertyHelp: {
+                tooltip: 'Turn on when the toolbar contains a dropdown or popup. Those render their panel at the page root, so focus leaves the toolbar and it would otherwise close as soon as you open them. While on, the toolbar stays open once it appears — close it with the "Close toolbar" action, or Escape.',
             },
             /* wwEditor:end */
         },

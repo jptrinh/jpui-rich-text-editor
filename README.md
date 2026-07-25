@@ -44,6 +44,12 @@ state.
 In the WeWeb editor the menu stays open (see `Force open floating toolbar`) so
 you can drop and arrange elements without needing a live selection.
 
+**Toolbars containing a dropdown.** By default the toolbar closes when focus leaves
+it. A `ww-input-select` (or any popup) renders its panel at the **page root**, so
+opening it moves focus outside the toolbar and closes it before you can pick anything.
+Turn on **`Manual close`**, then close it yourself with the
+`closeToolbar` action once the selection is applied. `Escape` still closes it too.
+
 **The editor is read-only on the WeWeb canvas.** That's deliberate: typing on the
 canvas is never written back to `Initial value`, so it would be silently lost on
 reload. Use Preview to type — editing works normally there and at runtime.
@@ -78,6 +84,7 @@ npm run build -- --name=jpui-rich-text-editor --type=wwobject
 | `Read only` | OnOff | Force read-only (overrides Editable). |
 | `Autofocus` | OnOff | Focus the editor on load. |
 | `Force open floating toolbar` | OnOff | **Editor mode only** — keep the menu open to drop/arrange buttons. No runtime effect. |
+| `Manual close` | OnOff | Stops the toolbar auto-closing when focus leaves it. Turn on when the toolbar holds a **dropdown or popup** — see below. |
 | `Debounce change event` (+ delay) | OnOff / Length | Debounce the `change` event. |
 | `Accessible label` | Text | Name screen readers announce for the editing area. Defaults to `Rich text editor`; see [Accessibility](#accessibility). |
 | `Toolbar accessible label` | Text | Name screen readers announce for the floating toolbar. |
