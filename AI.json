@@ -21,6 +21,24 @@
   },
   "properties": [
     {
+      "name": "ariaLabel",
+      "description": "Accessible name of the editing area, announced by screen readers.",
+      "type": "string",
+      "defaultValue": "Rich text editor"
+    },
+    {
+      "name": "toolbarLabel",
+      "description": "Accessible name of the floating toolbar.",
+      "type": "string",
+      "defaultValue": "Text formatting"
+    },
+    {
+      "name": "focusRingColor",
+      "description": "Color of the ring drawn when the editor is focused by keyboard.",
+      "type": "string",
+      "defaultValue": "#2563eb"
+    },
+    {
       "name": "initialValue",
       "description": "Initial HTML content of the editor.",
       "type": "string",
@@ -107,7 +125,7 @@
       "name": "editorBorder",
       "description": "Editor border (CSS shorthand).",
       "type": "string",
-      "defaultValue": "1px solid #e5e7eb"
+      "defaultValue": "1px solid #878e9c"
     },
     {
       "name": "editorBorderRadius",
@@ -119,7 +137,7 @@
       "name": "placeholderColor",
       "description": "Placeholder text color.",
       "type": "string",
-      "defaultValue": "#9ca3af"
+      "defaultValue": "#6b7280"
     },
     {
       "name": "menuVerticalPosition",
@@ -602,7 +620,16 @@
       "type": "string"
     }
   ],
-  "states": [],
+  "states": [
+    {
+      "name": "focus",
+      "description": "Active while the editing area has focus. Style properties marked state-aware can be given focus values."
+    },
+    {
+      "name": "readonly",
+      "description": "Active while the editor is read-only (via Read only, Editable off, or the WeWeb canvas)."
+    }
+  ],
   "events": [
     {
       "name": "change",
@@ -883,7 +910,10 @@
     "Per-element-type typography is controlled by the style properties grouped by element (Paragraph, Heading 1-6, Quote, Code, Lists, Link).",
     "Works as a form field inside a ww-form-container: the HTML value is submitted under fieldName, validated before submit, and reset to initialValue with the form. Outside a form it behaves as a standalone editor and the form settings stay hidden.",
     "The editor is read-only on the WeWeb editor canvas, since typing there is never persisted; it edits normally in preview and at runtime.",
-    "At runtime the floating toolbar is teleported to the page root and positioned with position: fixed, so it is never clipped by an ancestor overflow and never trapped in a parent stacking context; use menuZIndex to layer it against app overlays. On the editor canvas it stays inside the component so WeWeb drag & drop into the dropzone keeps working."
+    "At runtime the floating toolbar is teleported to the page root and positioned with position: fixed, so it is never clipped by an ancestor overflow and never trapped in a parent stacking context; use menuZIndex to layer it against app overlays. On the editor canvas it stays inside the component so WeWeb drag & drop into the dropzone keeps working.",
+    "Accessibility: the editing area is role=textbox with aria-multiline and is named by ariaLabel; the floating toolbar is role=toolbar named by toolbarLabel, reachable with Alt+F10, dismissed with Escape, with arrow-key navigation between buttons.",
+    "Buttons dropped into the toolbar must carry their own accessible name and be natively focusable (e.g. ww-button); a styled ww-div is not keyboard reachable.",
+    "Default colors meet WCAG AA: placeholder 4.8:1 and editor border 3.3:1; keyboard focus draws a :focus-visible ring controlled by focusRingColor."
   ],
   "examples": [
     {

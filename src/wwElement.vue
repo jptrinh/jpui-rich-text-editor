@@ -7,7 +7,18 @@
              Teleported to the page root at runtime so ancestor `overflow: hidden`
              cannot clip it and it is not trapped in a parent stacking context. -->
         <Teleport :to="teleportTo" :disabled="teleportDisabled">
-            <div v-if="showMenu" ref="menuEl" class="jp-rte__menu" :style="menuStyle">
+            <div
+                v-if="showMenu"
+                ref="menuEl"
+                class="jp-rte__menu"
+                :style="menuStyle"
+                role="toolbar"
+                :aria-label="toolbarLabel"
+                tabindex="-1"
+                @keydown="onMenuKeydown"
+                @focusin="onMenuFocusIn"
+                @focusout="onMenuFocusOut"
+            >
                 <wwLayout path="toolbarContent" direction="row" class="jp-rte__menu-layout" />
             </div>
         </Teleport>
@@ -49,6 +60,10 @@ export default {
         const selectedText = ref('');
         const hasSelection = ref(false);
         const isFocused = ref(false);
+        // True while keyboard focus sits inside the floating toolbar. The editor is
+        // blurred at that point, so without this the menu would unmount from under
+        // the very button the user just focused.
+        const isMenuFocused = ref(false);
         // Local-context data (context.local.data['richText']). Kept as a ref and
         // reassigned explicitly on every state change — a lazy `computed` was not
         // re-tracked reliably by the dropzone bindings, so it looked frozen.
@@ -195,8 +210,11 @@ export default {
             /* wwEditor:end */
             if (forceOpen) return true;
             if (isSelectionOffscreen.value) return false;
-            return isEditable.value && isFocused.value && hasSelection.value;
+            // Keep it open while the user is operating it from the keyboard.
+            return isEditable.value && (isFocused.value || isMenuFocused.value) && hasSelection.value;
         });
+
+        const toolbarLabel = computed(() => props.content?.toolbarLabel || 'Text formatting');
 
         const MENU_GAP = 8; // inherent spacing between selection and menu
 
@@ -266,10 +284,11 @@ export default {
                 '--rt-bg': props.content?.editorBackground || '#ffffff',
                 '--rt-padding': props.content?.editorPadding || '12px',
                 '--rt-min-height': props.content?.editorMinHeight || '160px',
-                '--rt-border': props.content?.editorBorder || '1px solid #e5e7eb',
+                '--rt-border': props.content?.editorBorder || '1px solid #878e9c',
                 '--rt-radius': props.content?.editorBorderRadius || '8px',
-                '--rt-placeholder-color': props.content?.placeholderColor || '#9ca3af',
+                '--rt-placeholder-color': props.content?.placeholderColor || '#6b7280',
                 '--rt-code-bg': props.content?.codeBackground || '#f3f4f6',
+                '--rt-focus-ring': props.content?.focusRingColor || '#2563eb',
                 // Menu variables intentionally live on the menu element (see menuVars).
             };
             // Per-element-type typography variables (e.g. --rt-h1-font-size).
@@ -485,6 +504,89 @@ export default {
             menuDismissed.value = true;
         };
 
+        // ---- Accessibility ----
+        // ProseMirror renders a bare contenteditable div: no name, and no role that
+        // assistive tech can rely on. Set them on the editable node itself.
+        const syncA11yAttributes = () => {
+            const dom = editorInstance.value?.view?.dom;
+            if (!dom || typeof dom.setAttribute !== 'function') return;
+            dom.setAttribute('role', 'textbox');
+            dom.setAttribute('aria-multiline', 'true');
+            dom.setAttribute('aria-label', props.content?.ariaLabel || 'Rich text editor');
+            dom.setAttribute('aria-readonly', isEditable.value ? 'false' : 'true');
+        };
+
+        // Focusable children of the toolbar, in DOM order.
+        const toolbarFocusables = () => {
+            const menu = menuEl.value;
+            if (!menu || typeof menu.querySelectorAll !== 'function') return [];
+            return Array.from(
+                menu.querySelectorAll(
+                    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                )
+            );
+        };
+
+        // Move focus into the toolbar (Alt+F10, the convention used by editors like
+        // TinyMCE and CKEditor). Falls back to the container, which is focusable via
+        // tabindex="-1", so the toolbar is still announced when the buttons the user
+        // dropped are not focusable themselves.
+        const focusToolbar = () => {
+            if (!showMenu.value) return false;
+            const [first] = toolbarFocusables();
+            const target = first || menuEl.value;
+            if (!target || typeof target.focus !== 'function') return false;
+            isMenuFocused.value = true;
+            target.focus();
+            return true;
+        };
+
+        // Leave the toolbar: hide it and put the caret back where it was.
+        const dismissToolbar = () => {
+            menuDismissed.value = true;
+            isMenuFocused.value = false;
+            editorInstance.value?.commands.focus();
+        };
+
+        const onMenuFocusIn = () => {
+            isMenuFocused.value = true;
+        };
+
+        // focusout fires before focusin when moving between two buttons, so settle
+        // first and then ask whether focus actually left the toolbar.
+        const onMenuFocusOut = () => {
+            setTimeout(() => {
+                const menu = menuEl.value;
+                const active = wwLib.getFrontDocument()?.activeElement;
+                isMenuFocused.value = !!(
+                    menu &&
+                    active &&
+                    typeof menu.contains === 'function' &&
+                    menu.contains(active)
+                );
+            }, 0);
+        };
+
+        // Roving arrow-key navigation between the dropped buttons, per the toolbar
+        // pattern; Escape returns to the editor.
+        const onMenuKeydown = event => {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                dismissToolbar();
+                return;
+            }
+            if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+            const items = toolbarFocusables();
+            if (items.length < 2) return;
+            const active = wwLib.getFrontDocument()?.activeElement;
+            const index = items.indexOf(active);
+            if (index === -1) return;
+            event.preventDefault();
+            const step = event.key === 'ArrowRight' ? 1 : -1;
+            const next = items[(index + step + items.length) % items.length];
+            if (typeof next?.focus === 'function') next.focus();
+        };
+
         // ---- Local context registration (data updated via syncExposed above) ----
 
         // Formatting actions are declared in ww-config.js `actions` (with typed
@@ -526,6 +628,18 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
                     Placeholder.configure({ placeholder: () => props.content?.placeholder || '' }),
                 ],
                 autofocus: props.content?.autofocus ? 'end' : false,
+                editorProps: {
+                    handleKeyDown: (_view, event) => {
+                        // Alt+F10 moves focus into the toolbar; Escape dismisses it.
+                        // Both return true to swallow the key once handled.
+                        if (event.altKey && event.key === 'F10') return focusToolbar();
+                        if (event.key === 'Escape' && showMenu.value && !menuDismissed.value) {
+                            menuDismissed.value = true;
+                            return true;
+                        }
+                        return false;
+                    },
+                },
                 onUpdate: ({ editor }) => {
                     emitChange(editor.getHTML());
                     refreshState();
@@ -557,6 +671,7 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
             // Seed the internal value from the initial content.
             setValue(editorInstance.value.getHTML());
             refreshState();
+            syncA11yAttributes();
         });
 
         onBeforeUnmount(() => {
@@ -593,7 +708,11 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
 
         watch(isEditable, value => {
             editorInstance.value?.setEditable(value);
+            // setEditable rewrites the node's attributes, so re-apply ours after it.
+            syncA11yAttributes();
         });
+
+        watch(() => props.content?.ariaLabel, syncA11yAttributes);
 
         watch(
             () => props.content?.placeholder,
@@ -628,6 +747,10 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
             rootStyle,
             teleportTo,
             teleportDisabled,
+            toolbarLabel,
+            onMenuKeydown,
+            onMenuFocusIn,
+            onMenuFocusOut,
             // Component actions (declared in ww-config.js `actions`)
             toggleBold,
             toggleItalic,
@@ -671,12 +794,21 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
             min-height: var(--rt-min-height, 160px);
             padding: var(--rt-padding, 12px);
             background: var(--rt-bg, #ffffff);
-            border: var(--rt-border, 1px solid #e5e7eb);
+            border: var(--rt-border, 1px solid #878e9c);
             border-radius: var(--rt-radius, 8px);
             font-family: var(--rt-font-family, inherit);
             font-size: var(--rt-font-size, 16px);
             color: var(--rt-color, #1f2937);
+
+            // A bare `outline: none` would leave the field with no focus indicator.
+            // Keep the native ring for keyboard users (:focus-visible) and drop it
+            // for pointer users, who already get the caret.
             outline: none;
+
+            &:focus-visible {
+                outline: 2px solid var(--rt-focus-ring, #2563eb);
+                outline-offset: 2px;
+            }
 
             > * + * {
                 margin-top: 0.5em;
@@ -688,7 +820,7 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
                 float: left;
                 height: 0;
                 pointer-events: none;
-                color: var(--rt-placeholder-color, #9ca3af);
+                color: var(--rt-placeholder-color, #6b7280);
             }
 
             p {

@@ -79,6 +79,8 @@ npm run build -- --name=jpui-rich-text-editor --type=wwobject
 | `Autofocus` | OnOff | Focus the editor on load. |
 | `Force open floating toolbar` | OnOff | **Editor mode only** — keep the menu open to drop/arrange buttons. No runtime effect. |
 | `Debounce change event` (+ delay) | OnOff / Length | Debounce the `change` event. |
+| `Accessible label` | Text | Name screen readers announce for the editing area. Set this — see [Accessibility](#accessibility). |
+| `Toolbar accessible label` | Text | Name screen readers announce for the floating toolbar. |
 | `Field name`, `Custom validation`, `Validation` | Text / OnOff / Formula | Form settings — only shown when the editor sits inside a form. |
 
 ### Editor box (Style panel)
@@ -89,6 +91,11 @@ npm run build -- --name=jpui-rich-text-editor --type=wwobject
 | `Background`, `Padding`, `Min height` | The editing surface. It grows with its content but never shrinks below `Min height`. |
 | `Border`, `Border radius` | Frame around the editing surface. |
 | `Placeholder color` | Color of the placeholder text. |
+| `Focus ring color` | Ring drawn when the editor is focused by keyboard. |
+
+The component declares the **`focus`** and **`readonly`** states, so you can pick
+them in the editor's state selector and give the background, text color, radius,
+border and placeholder color per-state values.
 
 ### Selection menu (Style panel)
 
@@ -180,6 +187,52 @@ settings stay hidden in the panel.
 
 Standard TipTap shortcuts are active: `Cmd/Ctrl+B` bold, `+I` italic, `+U`
 underline, `+E` inline code, `+Alt+1…6` headings, `+Shift+7/8` lists, and more.
+
+The component adds two of its own:
+
+| Key | Effect |
+|---|---|
+| `Alt+F10` | Move focus into the floating toolbar (the convention used by TinyMCE and CKEditor). |
+| `Escape` | Dismiss the toolbar; from inside it, return focus to the editor. |
+
+Inside the toolbar, `←` / `→` move between focusable buttons.
+
+---
+
+## Accessibility
+
+What the component handles:
+
+- The editing area is exposed as `role="textbox"` with `aria-multiline="true"`,
+  named by **`Accessible label`**, and `aria-readonly` tracks the read-only state.
+- The toolbar is a `role="toolbar"` named by **`Toolbar accessible label`**,
+  reachable with `Alt+F10`, dismissible with `Escape`, with arrow-key navigation
+  between buttons. It stays open while focus is inside it.
+- Keyboard focus draws a visible ring (`:focus-visible` only, so pointer users
+  don't get one); pointer users still have the caret.
+- The default colors meet WCAG AA — body text 14.7:1, placeholder 4.8:1, links
+  5.2:1 (and underlined, not color-only), and the editor border 3.3:1 to satisfy
+  the 3:1 minimum for control boundaries.
+- The toolbar's appear animation respects `prefers-reduced-motion`.
+
+**What you have to do:**
+
+1. **Set `Accessible label`.** The default (`Rich text editor`) is only a
+   fallback — give it the field's real purpose, especially in a form.
+2. **Give every dropped toolbar button an accessible name.** Icon-only buttons
+   are the most common failure in this pattern: an icon with no text is
+   announced as nothing. Use a `ww-button` with text, or add an `aria-label`.
+3. **Make dropped buttons focusable.** `Alt+F10` and the arrow keys can only
+   reach natively focusable elements (`ww-button`, links, inputs). A styled
+   `ww-div` is not focusable — if that's all the toolbar contains, focus lands
+   on the toolbar container itself and the buttons stay keyboard-unreachable.
+4. **Mind the heading levels.** Authors can insert H1–H6 into content, which can
+   break the page's heading hierarchy. Restrict which levels your toolbar
+   offers if that matters for the surrounding page.
+
+If you keep the toolbar buttons non-focusable, note that the standard formatting
+is still keyboard-operable through the shortcuts above — but any custom action
+that exists only as a toolbar button will not be.
 
 ---
 

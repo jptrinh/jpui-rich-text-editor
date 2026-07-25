@@ -50,6 +50,7 @@ export default {
                     'editorBorder',
                     'editorBorderRadius',
                     'placeholderColor',
+                    'focusRingColor',
                 ],
             },
             {
@@ -81,11 +82,49 @@ export default {
             'forceOpenMenu',
             'debounce',
             'debounceDelay',
+            ['ariaLabel', 'toolbarLabel'],
             'formInfobox',
             ['fieldName', 'customValidation', 'validation'],
         ],
     },
+    // Selectable in the editor's state picker, so style properties marked
+    // `states: true` can be given per-state values (e.g. a focus ring).
+    states: ['focus', 'readonly'],
     properties: {
+        // ---- Accessibility ----
+        ariaLabel: {
+            label: { en: 'Accessible label' },
+            type: 'Text',
+            section: 'settings',
+            defaultValue: 'Rich text editor',
+            bindable: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                type: 'string',
+                tooltip: 'The name screen readers announce for the editing area.',
+            },
+            propertyHelp: {
+                tooltip: 'Names the editing area for screen readers. Without it the field is announced with no indication of what it is — required when the editor sits in a form.',
+            },
+            /* wwEditor:end */
+        },
+        toolbarLabel: {
+            label: { en: 'Toolbar accessible label' },
+            type: 'Text',
+            section: 'settings',
+            defaultValue: 'Text formatting',
+            bindable: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                type: 'string',
+                tooltip: 'The name screen readers announce for the floating toolbar.',
+            },
+            propertyHelp: {
+                tooltip: 'Names the floating toolbar for screen readers. Press Alt+F10 in the editor to move focus into it, Escape to leave.',
+            },
+            /* wwEditor:end */
+        },
+
         // ---- Settings ----
         initialValue: {
             label: { en: 'Initial value (HTML)', fr: 'Valeur initiale (HTML)' },
@@ -315,6 +354,8 @@ export default {
             defaultValue: '#1f2937',
             bindable: true,
             responsive: true,
+            states: true,
+            classes: true,
             /* wwEditor:start */
             bindingValidation: { cssSupports: 'color', type: 'string', tooltip: 'A CSS color.' },
             propertyHelp: { tooltip: 'Default text color for content without a per-type color.' },
@@ -327,6 +368,8 @@ export default {
             defaultValue: '#ffffff',
             bindable: true,
             responsive: true,
+            states: true,
+            classes: true,
             /* wwEditor:start */
             bindingValidation: {
                 cssSupports: 'background-color',
@@ -378,7 +421,7 @@ export default {
             classes: true,
             bindable: true,
             responsive: true,
-            defaultValue: '1px solid #e5e7eb',
+            defaultValue: '1px solid #878e9c',
             /* wwEditor:start */
             bindingValidation: { cssSupports: 'border', type: 'string', tooltip: 'CSS border shorthand.' },
             propertyHelp: { tooltip: 'Border around the editing surface.' },
@@ -392,6 +435,8 @@ export default {
             defaultValue: '8px',
             bindable: true,
             responsive: true,
+            states: true,
+            classes: true,
             /* wwEditor:start */
             bindingValidation: {
                 cssSupports: 'border-radius',
@@ -405,12 +450,29 @@ export default {
             label: { en: 'Placeholder color' },
             type: 'Color',
             section: 'style',
-            defaultValue: '#9ca3af',
+            defaultValue: '#6b7280',
+            bindable: true,
+            responsive: true,
+            states: true,
+            classes: true,
+            /* wwEditor:start */
+            bindingValidation: { cssSupports: 'color', type: 'string', tooltip: 'A CSS color.' },
+            propertyHelp: { tooltip: 'Color of the placeholder text shown while the editor is empty.' },
+            /* wwEditor:end */
+        },
+
+        focusRingColor: {
+            label: { en: 'Focus ring color' },
+            type: 'Color',
+            section: 'style',
+            defaultValue: '#2563eb',
             bindable: true,
             responsive: true,
             /* wwEditor:start */
             bindingValidation: { cssSupports: 'color', type: 'string', tooltip: 'A CSS color.' },
-            propertyHelp: { tooltip: 'Color of the placeholder text shown while the editor is empty.' },
+            propertyHelp: {
+                tooltip: 'Ring drawn around the editor when it is focused by keyboard. Keep it at 3:1 contrast against the background so it stays visible.',
+            },
             /* wwEditor:end */
         },
 
