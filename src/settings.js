@@ -157,7 +157,7 @@ export const CONTENT_TYPES = [
     // `extras` are extra property keys appended to this type's side-panel group.
     { prefix: 'code', label: 'Code', extras: ['codeBackground'] },
     { prefix: 'list', label: 'Lists' },
-    { prefix: 'link', label: 'Link' },
+    { prefix: 'link', label: 'Link', extras: ['linkTextDecoration'] },
 ];
 
 // Typography sub-properties (suffixes) that each group defines, used to build

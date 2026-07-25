@@ -115,7 +115,9 @@ Margin top/bottom** — grouped per element type: **Paragraph, Heading 1–6, Qu
 Code, Lists, Link**.
 
 The **Code** group also has a **Background** control, and applies to both code
-blocks and inline code so the two stay visually consistent.
+blocks and inline code so the two stay visually consistent. The **Link** group
+adds a **Text decoration** control (`underline` by default — see
+[Accessibility](#accessibility) before removing it).
 
 ---
 

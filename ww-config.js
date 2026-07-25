@@ -663,6 +663,34 @@ export default {
             /* wwEditor:end */
         },
 
+        // Shown inside the "Link" group.
+        linkTextDecoration: {
+            label: { en: 'Text decoration', fr: 'Décoration' },
+            type: 'TextSelect',
+            section: 'style',
+            options: {
+                options: [
+                    { value: 'underline', label: { en: 'Underline', fr: 'Souligné' } },
+                    { value: 'none', label: { en: 'None', fr: 'Aucune' } },
+                    { value: 'line-through', label: { en: 'Line through', fr: 'Barré' } },
+                    { value: 'overline', label: { en: 'Overline', fr: 'Surligné' } },
+                ],
+            },
+            defaultValue: 'underline',
+            bindable: true,
+            responsive: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'text-decoration-line',
+                type: 'string',
+                tooltip: 'Valid values: underline | none | line-through | overline',
+            },
+            propertyHelp: {
+                tooltip: 'Underline is the accessible default: without it, links are distinguished from body text by color alone, which fails WCAG 1.4.1 unless you add another visual cue.',
+            },
+            /* wwEditor:end */
+        },
+
         // Shown inside the "Code" group; applies to both code blocks and inline code.
         codeBackground: {
             label: { en: 'Background', fr: 'Fond' },

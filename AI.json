@@ -211,6 +211,12 @@
       "defaultValue": 1000
     },
     {
+      "name": "linkTextDecoration",
+      "description": "Text decoration for links: underline | none | line-through | overline.",
+      "type": "string",
+      "defaultValue": "underline"
+    },
+    {
       "name": "codeBackground",
       "description": "Background color of code blocks and inline code.",
       "type": "string",

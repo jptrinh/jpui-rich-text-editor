@@ -300,6 +300,7 @@ export default {
                 '--rt-placeholder-color': props.content?.placeholderColor || '#6b7280',
                 '--rt-code-bg': props.content?.codeBackground || '#f3f4f6',
                 '--rt-focus-ring': props.content?.focusRingColor || '#2563eb',
+                '--rt-link-decoration': props.content?.linkTextDecoration || 'underline',
                 // Menu variables intentionally live on the menu element (see menuVars).
             };
             // Per-element-type typography variables (e.g. --rt-h1-font-size).
@@ -915,10 +916,14 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
             }
 
             a {
+                // WeWeb's front stylesheet sets a global `a { display: block }`,
+                // which would break the line around every link. Restore the inline
+                // flow explicitly — this rule out-specifies theirs.
+                display: inline;
                 font-family: var(--rt-link-font-family, inherit);
                 font-weight: var(--rt-link-font-weight, inherit);
                 color: var(--rt-link-color, #2563eb);
-                text-decoration: underline;
+                text-decoration: var(--rt-link-decoration, underline);
                 cursor: pointer;
             }
         }
