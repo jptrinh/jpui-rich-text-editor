@@ -814,6 +814,59 @@ export default {
             /* wwEditor:end */
         },
 
+        // Block and inline code need separate padding: a block is a box around
+        // several lines, inline code is a chip inside a sentence.
+        codeBlockPadding: {
+            label: { en: 'Block padding', fr: 'Marge intérieure (bloc)' },
+            type: 'Spacing',
+            section: 'style',
+            options: {
+                unitChoices: [
+                    { value: 'px', label: 'px', min: 0, max: 200 },
+                    { value: 'em', label: 'em', min: 0, max: 10 },
+                ],
+                noRange: true,
+                useVar: true,
+            },
+            defaultValue: '0.75em 1em 0.75em 1em',
+            bindable: true,
+            responsive: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'padding',
+                type: 'string',
+                tooltip: 'A CSS padding value: `"12px"` | `"0.75em 1em"`.',
+            },
+            propertyHelp: { tooltip: 'Padding inside a code block (a multi-line `pre`).' },
+            /* wwEditor:end */
+        },
+        codeInlinePadding: {
+            label: { en: 'Inline padding', fr: 'Marge intérieure (en ligne)' },
+            type: 'Spacing',
+            section: 'style',
+            options: {
+                unitChoices: [
+                    { value: 'px', label: 'px', min: 0, max: 100 },
+                    { value: 'em', label: 'em', min: 0, max: 5 },
+                ],
+                noRange: true,
+                useVar: true,
+            },
+            defaultValue: '0.1em 0.3em 0.1em 0.3em',
+            bindable: true,
+            responsive: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                cssSupports: 'padding',
+                type: 'string',
+                tooltip: 'A CSS padding value: `"2px 4px"` | `"0.1em 0.3em"`.',
+            },
+            propertyHelp: {
+                tooltip: 'Padding around inline code inside a sentence. Keep vertical values small so the code chip does not push the line height around.',
+            },
+            /* wwEditor:end */
+        },
+
         // Shown inside the "Code" group; applies to both code blocks and inline code.
         codeBackground: {
             label: { en: 'Background', fr: 'Fond' },

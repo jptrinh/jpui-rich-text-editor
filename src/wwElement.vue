@@ -322,6 +322,8 @@ export default {
                 '--rt-radius': props.content?.editorBorderRadius || '8px',
                 '--rt-placeholder-color': props.content?.placeholderColor || '#6b7280',
                 '--rt-code-bg': props.content?.codeBackground || '#f3f4f6',
+                '--rt-code-block-padding': props.content?.codeBlockPadding || '0.75em 1em',
+                '--rt-code-inline-padding': props.content?.codeInlinePadding || '0.1em 0.3em',
                 '--rt-focus-ring': props.content?.focusRingColor || '#2563eb',
                 '--rt-link-decoration': props.content?.linkTextDecoration || 'underline',
                 '--rt-quote-bar': props.content?.blockquoteBar || '3px solid #6b7280',
@@ -915,7 +917,7 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
                 margin-bottom: var(--rt-code-margin-bottom, 0);
                 background: var(--rt-code-bg, #f3f4f6);
                 border-radius: 6px;
-                padding: 0.75em 1em;
+                padding: var(--rt-code-block-padding, 0.75em 1em);
                 overflow-x: auto;
 
                 // The block already paints the background; its inner <code> must
@@ -933,7 +935,7 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
                 font-weight: var(--rt-code-font-weight, inherit);
                 color: var(--rt-code-color, #1f2937);
                 background: var(--rt-code-bg, #f3f4f6);
-                padding: 0.1em 0.3em;
+                padding: var(--rt-code-inline-padding, 0.1em 0.3em);
                 border-radius: 4px;
             }
 

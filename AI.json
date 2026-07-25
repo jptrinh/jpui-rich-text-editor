@@ -246,6 +246,18 @@
       "defaultValue": "underline"
     },
     {
+      "name": "codeBlockPadding",
+      "description": "Padding inside a multi-line code block (pre).",
+      "type": "string",
+      "defaultValue": "0.75em 1em 0.75em 1em"
+    },
+    {
+      "name": "codeInlinePadding",
+      "description": "Padding around inline code inside a sentence.",
+      "type": "string",
+      "defaultValue": "0.1em 0.3em 0.1em 0.3em"
+    },
+    {
       "name": "codeBackground",
       "description": "Background color of code blocks and inline code.",
       "type": "string",

@@ -121,8 +121,10 @@ remove it), **Background**, **Padding** (whose left value is the gap between the
 the text) and **Margin left / right**. Those last two are applied as
 `margin-inline-start` / `margin-inline-end`, so they follow the text direction; they
 default to the 40px browsers put on quotes — set them to 0 to align a quote with the
-surrounding text. The **Code** group also has a **Background** control, and applies to both code
-blocks and inline code so the two stay visually consistent. The **Link** group
+surrounding text. The **Code** group applies to both code blocks and inline code so the two stay
+visually consistent, and adds a **Background** control plus separate **Block padding**
+and **Inline padding** — a block is a box around several lines, inline code is a chip
+inside a sentence, so they rarely want the same value. The **Link** group
 adds a **Text decoration** control (`underline` by default — see
 [Accessibility](#accessibility) before removing it).
 
