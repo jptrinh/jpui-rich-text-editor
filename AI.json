@@ -135,41 +135,6 @@
       "defaultValue": true
     },
     {
-      "name": "menuBackground",
-      "description": "Floating menu background color.",
-      "type": "string",
-      "defaultValue": "#111827"
-    },
-    {
-      "name": "menuBorder",
-      "description": "Floating menu border (CSS shorthand).",
-      "type": "string",
-      "defaultValue": "none"
-    },
-    {
-      "name": "menuBorderRadius",
-      "description": "Floating menu border radius.",
-      "type": "string",
-      "defaultValue": "8px"
-    },
-    {
-      "name": "menuPadding",
-      "description": "Floating menu padding.",
-      "type": "string",
-      "defaultValue": "6px"
-    },
-    {
-      "name": "menuGap",
-      "description": "Gap between floating menu items.",
-      "type": "string",
-      "defaultValue": "4px"
-    },
-    {
-      "name": "menuShadow",
-      "description": "Floating menu box-shadow.",
-      "type": "string"
-    },
-    {
       "name": "menuOffsetX",
       "description": "Horizontal offset of the floating menu.",
       "type": "string",

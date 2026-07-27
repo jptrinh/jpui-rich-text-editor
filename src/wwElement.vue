@@ -3,7 +3,8 @@
         <!-- Editor surface: TipTap mounts into this element -->
         <div ref="editorEl" class="jp-rte__surface"></div>
 
-        <!-- Floating selection menu = dropzone the user fills with their own buttons.
+        <!-- Floating selection menu = dropzone the user fills with their own buttons,
+             usually wrapped in a container that carries the toolbar's own look.
              Teleported to the page root at runtime so ancestor `overflow: hidden`
              cannot clip it and it is not trapped in a parent stacking context. -->
         <Teleport :to="teleportTo" :disabled="teleportDisabled">
@@ -308,25 +309,11 @@ export default {
 
         const MENU_GAP = 8; // inherent spacing between selection and menu
 
-        // The menu's own CSS variables. These MUST live on the menu element itself,
-        // not on the component root: once teleported the menu is no longer a DOM
-        // descendant, so inherited custom properties would silently fall back to
-        // their defaults and every menu styling property would stop applying.
-        const menuVars = computed(() => ({
-            '--rt-menu-bg': props.content?.menuBackground || '#111827',
-            '--rt-menu-border': props.content?.menuBorder || 'none',
-            '--rt-menu-radius': props.content?.menuBorderRadius || '8px',
-            '--rt-menu-padding': props.content?.menuPadding || '6px',
-            '--rt-menu-gap': props.content?.menuGap || '4px',
-            '--rt-menu-shadow': props.content?.menuShadow || '0px 8px 24px 0px rgba(0,0,0,0.24)',
-        }));
-
         const menuStyle = computed(() => {
             const offsetX = props.content?.menuOffsetX || '0px';
             const offsetY = props.content?.menuOffsetY || '0px';
             const teleported = !teleportDisabled.value;
             const base = {
-                ...menuVars.value,
                 // Teleported to the page root → fixed, positioned in viewport space.
                 // Left in place (editor canvas) → absolute inside the component.
                 position: teleported ? 'fixed' : 'absolute',
@@ -381,7 +368,6 @@ export default {
                 '--rt-quote-padding': props.content?.blockquotePadding || '0px 0px 0px 1em',
                 '--rt-quote-margin-inline-start': props.content?.blockquoteMarginLeft || '40px',
                 '--rt-quote-margin-inline-end': props.content?.blockquoteMarginRight || '40px',
-                // Menu variables intentionally live on the menu element (see menuVars).
             };
             // Per-element-type typography variables (e.g. --rt-h1-font-size).
             for (const { prefix } of CONTENT_TYPES) {
@@ -1126,23 +1112,22 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
         }
     }
 
-    // Single floating box. `position` and `z-index` are set inline, since the menu
-    // is fixed when teleported to the page root and absolute when left in place.
-    // Positioning uses the inline `transform` (translate); the appear animation uses
-    // the independent `scale` property so the two never collide. It scales from its
-    // own center (default origin).
+    // Positioning shell only — it carries no look of its own. The toolbar's box
+    // (background, border, radius, padding, gap, shadow) is a container the user
+    // drops into the dropzone and styles as a normal WeWeb element, so this stays
+    // transparent and shrink-wraps whatever lands inside.
+    //
+    // `position` and `z-index` are set inline, since the menu is fixed when
+    // teleported to the page root and absolute when left in place. Positioning uses
+    // the inline `transform` (translate); the appear animation uses the independent
+    // `scale` property so the two never collide. It scales from its own center
+    // (default origin).
     //
     // Note these are flat BEM class selectors (`.jp-rte__menu`), not descendants of
     // `.jp-rte`, so the styles still match once the menu is teleported out.
     &__menu {
         display: inline-flex;
         align-items: center;
-        gap: var(--rt-menu-gap, 4px);
-        padding: var(--rt-menu-padding, 6px);
-        background: var(--rt-menu-bg, #111827);
-        border: var(--rt-menu-border, none);
-        border-radius: var(--rt-menu-radius, 8px);
-        box-shadow: var(--rt-menu-shadow, 0px 8px 24px 0px rgba(0, 0, 0, 0.24));
         white-space: nowrap;
         animation: jp-rte-menu-in 150ms cubic-bezier(0.16, 1, 0.3, 1);
     }
@@ -1150,7 +1135,6 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
     &__menu-layout {
         display: inline-flex;
         align-items: center;
-        gap: var(--rt-menu-gap, 4px);
         min-width: 24px;
         min-height: 24px;
     }

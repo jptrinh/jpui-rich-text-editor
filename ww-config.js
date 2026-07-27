@@ -54,12 +54,6 @@ export default {
                     'menuVerticalPosition',
                     'menuHorizontalPosition',
                     'menuAutoFlip',
-                    'menuBackground',
-                    'menuBorder',
-                    'menuBorderRadius',
-                    'menuPadding',
-                    'menuGap',
-                    'menuShadow',
                     'menuOffsetX',
                     'menuOffsetY',
                     'menuZIndex',
@@ -455,104 +449,10 @@ export default {
             /* wwEditor:end */
         },
 
-        // ---- Selection menu style ----
-        menuBackground: {
-            label: { en: 'Menu background' },
-            type: 'Color',
-            section: 'style',
-            defaultValue: '#FFFFFF',
-            bindable: true,
-            responsive: true,
-            /* wwEditor:start */
-            bindingValidation: {
-                cssSupports: 'background-color',
-                type: 'string',
-                tooltip: 'A CSS color.',
-            },
-            propertyHelp: { tooltip: 'Background of the floating toolbar.' },
-            /* wwEditor:end */
-        },
-        menuBorder: {
-            label: { en: 'Menu border' },
-            type: 'Border',
-            section: 'style',
-            states: true,
-            classes: true,
-            bindable: true,
-            responsive: true,
-            defaultValue: 'none',
-            /* wwEditor:start */
-            bindingValidation: { cssSupports: 'border', type: 'string', tooltip: 'CSS border shorthand.' },
-            propertyHelp: { tooltip: 'Border around the floating toolbar.' },
-            /* wwEditor:end */
-        },
-        menuBorderRadius: {
-            label: { en: 'Menu radius' },
-            type: 'Spacing',
-            section: 'style',
-            options: { unitChoices: [{ value: 'px', label: 'px', min: 0, max: 100 }], isCorner: true, noRange: true },
-            defaultValue: '8px',
-            bindable: true,
-            responsive: true,
-            /* wwEditor:start */
-            bindingValidation: {
-                cssSupports: 'border-radius',
-                type: 'string',
-                tooltip: 'A CSS radius: `"8px"`.',
-            },
-            propertyHelp: { tooltip: 'Corner rounding of the floating toolbar.' },
-            /* wwEditor:end */
-        },
-        menuPadding: {
-            label: { en: 'Menu padding' },
-            type: 'Spacing',
-            section: 'style',
-            options: { unitChoices: [{ value: 'px', label: 'px', min: 0, max: 100 }], noRange: true },
-            defaultValue: '6px',
-            bindable: true,
-            responsive: true,
-            /* wwEditor:start */
-            bindingValidation: {
-                cssSupports: 'padding',
-                type: 'string',
-                tooltip: 'A CSS padding value: `"6px"` | `"6px 8px"`.',
-            },
-            propertyHelp: { tooltip: 'Space between the toolbar edge and the buttons dropped inside it.' },
-            /* wwEditor:end */
-        },
-        menuGap: {
-            label: { en: 'Menu gap' },
-            type: 'Length',
-            section: 'style',
-            options: { unitChoices: [{ value: 'px', label: 'px', min: 0, max: 60 }], noRange: true },
-            defaultValue: '4px',
-            bindable: true,
-            responsive: true,
-            /* wwEditor:start */
-            bindingValidation: {
-                cssSupports: 'gap',
-                type: 'string',
-                tooltip: 'A CSS length with a unit: `"4px"`.',
-            },
-            propertyHelp: { tooltip: 'Space between the buttons inside the toolbar.' },
-            /* wwEditor:end */
-        },
-        menuShadow: {
-            label: { en: 'Menu shadow' },
-            type: 'Shadows',
-            section: 'style',
-            defaultValue: '0px 8px 24px 0px rgba(0, 0, 0, 0.24)',
-            bindable: true,
-            responsive: true,
-            /* wwEditor:start */
-            bindingValidation: {
-                cssSupports: 'box-shadow',
-                type: 'string',
-                tooltip: 'A CSS box-shadow: `"0px 8px 24px 0px rgba(0,0,0,0.24)"` | `"none"`.',
-            },
-            propertyHelp: { tooltip: 'Drop shadow lifting the floating toolbar off the content.' },
-            /* wwEditor:end */
-        },
+        // ---- Selection menu placement ----
+        // The menu's look — background, border, radius, padding, gap, shadow — is
+        // not a property here: it belongs to the container seeded into the
+        // `toolbarContent` dropzone, styled like any other WeWeb element.
         menuOffsetX: {
             label: { en: 'Menu offset X' },
             section: 'style',
