@@ -321,7 +321,39 @@ export default {
         // ---- Selection menu dropzone (hidden array) ----
         toolbarContent: {
             hidden: true,
-            defaultValue: [],
+            // Seeded with the container that carries the toolbar's look, pre-styled
+            // with what used to be the menu style properties. It is an ordinary
+            // dropped element: the user restyles, renames or deletes it freely, and
+            // drops the buttons inside it. Only new instances get it — WeWeb applies
+            // `defaultValue` at creation, so instances already on a page keep theirs.
+            defaultValue: [
+                {
+                    isWwObject: true,
+                    type: 'ww-flexbox',
+                    // WeWeb's own components seed the navigator name both ways —
+                    // top-level (ww-radiogroup) and under `state` (ww-input-rich-text).
+                    // Set both so the container isn't left as a bare "Flexbox".
+                    name: 'Toolbar container',
+                    state: {
+                        name: 'Toolbar container',
+                        style: {
+                            default: {
+                                display: 'flex',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                width: 'auto',
+                                height: 'auto',
+                                columnGap: '4px',
+                                rowGap: '4px',
+                                padding: '6px',
+                                backgroundColor: '#FFFFFF',
+                                borderRadius: '8px',
+                                boxShadow: '0px 8px 24px 0px rgba(0, 0, 0, 0.24)',
+                            },
+                        },
+                    },
+                },
+            ],
             /* wwEditor:start */
             bindingValidation: {
                 type: 'array',

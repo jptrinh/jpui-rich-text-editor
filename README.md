@@ -35,7 +35,8 @@ state.
 
 1. The user selects text in the editor.
 2. A floating menu appears next to the selection. Its content is **your**
-   dropzone (`toolbarContent`) — drop in buttons, icons, dividers, anything.
+   dropzone (`toolbarContent`), which starts with a styled `Toolbar container`
+   flexbox — drop your buttons, icons and dividers inside it.
    When selecting with a pointer the menu waits for the button to be released,
    so it doesn't chase the range mid-drag; keyboard selection (`Shift`+arrows)
    shows it right away.
@@ -130,7 +131,13 @@ it isn't stuck on while you design.
 | `Auto flip if no space` | Open on the opposite side if the menu would overflow the viewport. |
 | `Menu offset X` / `Menu offset Y` | Fine-tune placement (accepts negative px). |
 | `Menu z-index` | Layering against your app's overlays (the toolbar renders at the page root). |
-| `Background`, `Border`, `Radius`, `Padding`, `Gap`, `Shadow` | Menu appearance. |
+
+The menu's **appearance** — background, border, radius, padding, gap, shadow — is
+not a component property. The floating menu is a bare positioning shell that
+shrink-wraps its content; the box is a **`Toolbar container`** flexbox that a new
+instance already has in its dropzone, pre-styled with the look above. Select it in
+the navigator and restyle it as you would any other element — or rename, replace or
+delete it. Drop your buttons **inside** it.
 
 ### Content styles (Style panel)
 
@@ -264,7 +271,13 @@ What the component handles:
    reach natively focusable elements (`ww-button`, links, inputs). A styled
    `ww-div` is not focusable — if that's all the toolbar contains, focus lands
    on the toolbar container itself and the buttons stay keyboard-unreachable.
-4. **Mind the heading levels.** Authors can insert H1–H6 into content, which can
+4. **Keep the toolbar container's contrast.** The floating menu is transparent and
+   unpadded, so the `Toolbar container` in the dropzone owns the toolbar's
+   background, spacing and shadow — and its contrast against the page behind it.
+   It ships white, so the shadow is what separates it from a light page: if you
+   remove the shadow, give it a border instead, and keep the buttons legible
+   against whatever background you set.
+5. **Mind the heading levels.** Authors can insert H1–H6 into content, which can
    break the page's heading hierarchy. Restrict which levels your toolbar
    offers if that matters for the surrounding page.
 
