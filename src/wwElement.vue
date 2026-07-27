@@ -685,16 +685,35 @@ export default {
             refreshSelectionAnchor();
         };
 
+        // Surfaces a press may land on without it meaning "the user left": the toolbar,
+        // the editor, and any panel a toolbar control opened at the page root.
+        const isOwnSurface = node =>
+            containsNode(menuEl.value, node) ||
+            containsNode(editorInstance.value?.view?.dom, node) ||
+            (typeof node?.closest === 'function' && !!node.closest(FLOATING_LAYER_SELECTOR));
+
+        // The event target alone does not answer "did the press land on us?". An open
+        // dropdown (ww-input-select and friends) lays a transparent full-page wrapper
+        // over everything to catch the press that closes it, and that wrapper — not the
+        // toolbar — is then the target of a press on the toolbar itself. So also walk
+        // the hit-test stack under the pointer, which still contains the toolbar sitting
+        // beneath the wrapper.
+        const pressedOnOwnSurface = event => {
+            if (isOwnSurface(event?.target)) return true;
+            const doc = wwLib.getFrontDocument();
+            const { clientX, clientY } = event ?? {};
+            if (typeof doc?.elementsFromPoint !== 'function') return false;
+            if (!Number.isFinite(clientX) || !Number.isFinite(clientY)) return false;
+            return doc.elementsFromPoint(clientX, clientY).some(isOwnSurface);
+        };
+
         // `Manual close` exists so that interacting with the toolbar cannot dismiss it —
         // not so the toolbar outlives the user's attention. A pointer landing outside the
         // editor, the toolbar and any panel the toolbar opened is the user leaving, so it
         // drops the latch and lets showMenu close as usual.
         const onDocumentPointerDown = event => {
             if (!showMenu.value) return;
-            const target = event?.target;
-            if (containsNode(menuEl.value, target)) return;
-            if (containsNode(editorInstance.value?.view?.dom, target)) return;
-            if (typeof target?.closest === 'function' && target.closest(FLOATING_LAYER_SELECTOR)) return;
+            if (pressedOnOwnSurface(event)) return;
             menuLatched.value = false;
             isMenuFocused.value = false;
             menuFocusFromKeyboard.value = false;

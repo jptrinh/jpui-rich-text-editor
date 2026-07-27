@@ -52,6 +52,10 @@ it. A `ww-input-select` (or any popup) renders its panel at the **page root**, s
 opening it moves focus outside the toolbar and closes it before you can pick anything.
 Turn on **`Manual close`**, then close it yourself with the
 `closeToolbar` action once the selection is applied. `Escape` still closes it too.
+With `Manual close` on, a click anywhere outside the editor, the toolbar and the
+panel does close it — including through the transparent full-page overlay a select
+puts up while its panel is open, so clicking the toolbar to dismiss the panel
+leaves the toolbar standing.
 
 **The editor is read-only on the WeWeb canvas.** That's deliberate: typing on the
 canvas is never written back to `Initial value`, so it would be silently lost on
