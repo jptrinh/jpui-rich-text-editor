@@ -36,6 +36,9 @@ state.
 1. The user selects text in the editor.
 2. A floating menu appears next to the selection. Its content is **your**
    dropzone (`toolbarContent`) — drop in buttons, icons, dividers, anything.
+   When selecting with a pointer the menu waits for the button to be released,
+   so it doesn't chase the range mid-drag; keyboard selection (`Shift`+arrows)
+   shows it right away.
 3. Each button's `onClick` workflow calls a **component action** (e.g. *Toggle
    Bold*, *Set Heading*), which applies the formatting to the current selection.
 4. Buttons can read the editor's **live state** to highlight themselves when

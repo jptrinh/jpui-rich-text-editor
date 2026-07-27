@@ -87,6 +87,11 @@ export default {
         // True when the selection has scrolled out of view. While teleported the menu
         // is fixed, so it would otherwise hover over unrelated content.
         const isSelectionOffscreen = ref(false);
+        // True while a pointer button is held down after landing in the editor, i.e.
+        // the user is still dragging a selection out. The toolbar waits for the
+        // release instead of popping up mid-drag and chasing the moving range.
+        // Keyboard selection (Shift+arrows) never sets this, so it is unaffected.
+        const isPointerSelecting = ref(false);
 
         /* wwEditor:start */
         const isEditing = computed(() => props?.wwEditorState?.isEditing ?? false);
@@ -248,6 +253,8 @@ export default {
             /* wwEditor:end */
             if (forceOpen) return true;
             if (!isEditable.value) return false;
+            // Mid-drag: the selection is not the user's final one yet.
+            if (isPointerSelecting.value) return false;
             // No selection, or no anchor to position against, means there is nothing
             // to format and nowhere to put the toolbar. The corner fallback in
             // menuStyle exists only for the force-open editor canvas, so never reach
@@ -292,6 +299,7 @@ export default {
             () =>
                 isEditable.value &&
                 hasSelection.value &&
+                !isPointerSelecting.value &&
                 (isFocused.value || isMenuFocused.value),
             open => {
                 if (open && props.content?.manualClose) menuLatched.value = true;
@@ -658,6 +666,25 @@ export default {
         const containsNode = (container, node) =>
             !!container && typeof container.contains === 'function' && container.contains(node);
 
+        // A pointer press that lands on the editable surface starts a drag selection:
+        // hold the toolbar back until the button comes back up. Bound on the document
+        // (capture) rather than on the surface so a press that ends outside the editor
+        // — or over the toolbar's own former position — is still seen through to its end.
+        const onDocumentPointerDownSelect = event => {
+            if (!containsNode(editorInstance.value?.view?.dom, event?.target)) return;
+            isPointerSelecting.value = true;
+        };
+
+        // pointercancel too: a press stolen by a scroll/zoom gesture never yields a
+        // pointerup, which would leave the toolbar suppressed for good.
+        const onDocumentPointerUpSelect = () => {
+            if (!isPointerSelecting.value) return;
+            isPointerSelecting.value = false;
+            // The range only settles on release, so re-measure before the toolbar
+            // renders against it.
+            refreshSelectionAnchor();
+        };
+
         // `Manual close` exists so that interacting with the toolbar cannot dismiss it —
         // not so the toolbar outlives the user's attention. A pointer landing outside the
         // editor, the toolbar and any panel the toolbar opened is the user leaving, so it
@@ -737,9 +764,11 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
             win?.addEventListener('scroll', scheduleReposition, { capture: true, passive: true });
             win?.addEventListener('resize', scheduleReposition, { passive: true });
             // capture, so a control that stops propagation cannot keep the toolbar alive.
-            wwLib
-                .getFrontDocument()
-                ?.addEventListener('pointerdown', onDocumentPointerDown, { capture: true });
+            const doc = wwLib.getFrontDocument();
+            doc?.addEventListener('pointerdown', onDocumentPointerDown, { capture: true });
+            doc?.addEventListener('pointerdown', onDocumentPointerDownSelect, { capture: true });
+            doc?.addEventListener('pointerup', onDocumentPointerUpSelect, { capture: true });
+            doc?.addEventListener('pointercancel', onDocumentPointerUpSelect, { capture: true });
 
             editorInstance.value = new Editor({
                 element: editorEl.value,
@@ -818,9 +847,11 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
             const win = wwLib.getFrontWindow();
             win?.removeEventListener('scroll', scheduleReposition, { capture: true });
             win?.removeEventListener('resize', scheduleReposition);
-            wwLib
-                .getFrontDocument()
-                ?.removeEventListener('pointerdown', onDocumentPointerDown, { capture: true });
+            const doc = wwLib.getFrontDocument();
+            doc?.removeEventListener('pointerdown', onDocumentPointerDown, { capture: true });
+            doc?.removeEventListener('pointerdown', onDocumentPointerDownSelect, { capture: true });
+            doc?.removeEventListener('pointerup', onDocumentPointerUpSelect, { capture: true });
+            doc?.removeEventListener('pointercancel', onDocumentPointerUpSelect, { capture: true });
             if (repositionFrame !== null) win?.cancelAnimationFrame(repositionFrame);
             editorInstance.value?.destroy();
             editorInstance.value = null;
