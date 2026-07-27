@@ -35,8 +35,8 @@ state.
 
 1. The user selects text in the editor.
 2. A floating menu appears next to the selection. Its content is **your**
-   dropzone (`toolbarContent`), which starts with a styled `Toolbar container`
-   flexbox — drop your buttons, icons and dividers inside it.
+   dropzone (`toolbarContent`), which starts with an empty `Toolbar container`
+   flexbox — style it, and drop your buttons, icons and dividers inside it.
    When selecting with a pointer the menu waits for the button to be released,
    so it doesn't chase the range mid-drag; keyboard selection (`Shift`+arrows)
    shows it right away.
@@ -135,9 +135,23 @@ it isn't stuck on while you design.
 The menu's **appearance** — background, border, radius, padding, gap, shadow — is
 not a component property. The floating menu is a bare positioning shell that
 shrink-wraps its content; the box is a **`Toolbar container`** flexbox that a new
-instance already has in its dropzone, pre-styled with the look above. Select it in
-the navigator and restyle it as you would any other element — or rename, replace or
-delete it. Drop your buttons **inside** it.
+instance already has in its dropzone. Select it in the navigator and style it as you
+would any other element — or rename, replace or delete it. Drop your buttons
+**inside** it.
+
+The container arrives **unstyled**, so the toolbar is a bare row of buttons until
+you style it. WeWeb creates a seeded element from its type and name but discards
+any styles the component ships with it, so this first pass is manual and per
+instance. Set these on the container to get the look the old menu properties gave:
+
+| Style | Value |
+|---|---|
+| Layout | `flex`, row, centered |
+| Background | `#FFFFFF` |
+| Padding | `6px` |
+| Gap | `4px` |
+| Radius | `8px` |
+| Shadow | `0px 8px 24px 0px rgba(0, 0, 0, 0.24)` |
 
 ### Content styles (Style panel)
 
@@ -274,9 +288,9 @@ What the component handles:
 4. **Keep the toolbar container's contrast.** The floating menu is transparent and
    unpadded, so the `Toolbar container` in the dropzone owns the toolbar's
    background, spacing and shadow — and its contrast against the page behind it.
-   It ships white, so the shadow is what separates it from a light page: if you
-   remove the shadow, give it a border instead, and keep the buttons legible
-   against whatever background you set.
+   It ships unstyled, so this is on you: give it a background the buttons stay
+   legible against, and a shadow or border so it reads as a layer above the page
+   rather than part of it.
 5. **Mind the heading levels.** Authors can insert H1–H6 into content, which can
    break the page's heading hierarchy. Restrict which levels your toolbar
    offers if that matters for the surrounding page.

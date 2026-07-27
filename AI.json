@@ -873,7 +873,7 @@
   "slots": [
     {
       "name": "toolbarContent",
-      "description": "Dropzone for the floating selection toolbar. A new instance arrives with a pre-styled ww-flexbox named \"Toolbar container\" already in it, which carries the toolbar's look; put your buttons/icons inside that container and wire each to one of the component actions. Read context.local.data['richText'] (or the \"state\" variable) to show active states.",
+      "description": "Dropzone for the floating selection toolbar. A new instance arrives with an unstyled ww-flexbox named \"Toolbar container\" already in it, which carries the toolbar's look once the user styles it; put your buttons/icons inside that container and wire each to one of the component actions. Read context.local.data['richText'] (or the \"state\" variable) to show active states.",
       "type": "element"
     }
   ],
@@ -893,7 +893,7 @@
   ],
   "specifications": [
     "The formatting toolbar is not built in: drop your own buttons into the toolbarContent dropzone and wire them to the actions.",
-    "The toolbar has no look of its own — background, border, radius, padding, gap and shadow are not component properties. The floating menu only positions and shrink-wraps its content; the box is the \"Toolbar container\" ww-flexbox seeded into toolbarContent, which the user styles, renames or deletes like any element they dropped themselves. Style that container rather than looking for menu style properties.",
+    "The toolbar has no look of its own — background, border, radius, padding, gap and shadow are not component properties. The floating menu only positions and shrink-wraps its content; the box is the \"Toolbar container\" ww-flexbox seeded into toolbarContent, which the user styles, renames or deletes like any element they dropped themselves. Style that container rather than looking for menu style properties. It is seeded unstyled and cannot be shipped pre-styled: WeWeb honours a seeded element's type and name but discards any styles the component ships with it, so each new instance needs its background, padding, gap, radius and shadow set once.",
     "The floating menu appears on text selection; in the WeWeb editor it stays open when forceOpenMenu is on so you can arrange buttons.",
     "Selection state is exposed twice: context.local.data['richText'] (instance-relative, for elements inside the dropzone) and the global \"state\" variable (variables['<uid>-state']).",
     "Output is HTML via the \"value\" variable and the change event.",

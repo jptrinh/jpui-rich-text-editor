@@ -321,37 +321,23 @@ export default {
         // ---- Selection menu dropzone (hidden array) ----
         toolbarContent: {
             hidden: true,
-            // Seeded with the container that carries the toolbar's look, pre-styled
-            // with what used to be the menu style properties. It is an ordinary
-            // dropped element: the user restyles, renames or deletes it freely, and
-            // drops the buttons inside it. Only new instances get it — WeWeb applies
-            // `defaultValue` at creation, so instances already on a page keep theirs.
+            // Seeded with the container that carries the toolbar's look. It is an
+            // ordinary dropped element: the user styles, renames or deletes it
+            // freely, and drops the buttons inside it. Only new instances get it —
+            // WeWeb applies `defaultValue` at creation, so instances already on a
+            // page keep theirs.
+            // The container arrives UNSTYLED and the user styles it once. Seeding a
+            // look is not possible: `type` and `name` are honoured, styles are not.
+            // Tried and rejected — `style: { default: {…} }` at the top level (the
+            // element's own stored shape) and `state: { style: { default: {…} } }`
+            // (what the native elements in weweb-assets ship). Both leave the created
+            // element at `style: { default: {} }`, confirmed by reading it back with
+            // getPageElementsByUid. Don't spend another round on a fourth spelling.
             defaultValue: [
                 {
                     isWwObject: true,
                     type: 'ww-flexbox',
-                    // WeWeb's own components seed the navigator name both ways —
-                    // top-level (ww-radiogroup) and under `state` (ww-input-rich-text).
-                    // Set both so the container isn't left as a bare "Flexbox".
                     name: 'Toolbar container',
-                    state: {
-                        name: 'Toolbar container',
-                        style: {
-                            default: {
-                                display: 'flex',
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                width: 'auto',
-                                height: 'auto',
-                                columnGap: '4px',
-                                rowGap: '4px',
-                                padding: '6px',
-                                backgroundColor: '#FFFFFF',
-                                borderRadius: '8px',
-                                boxShadow: '0px 8px 24px 0px rgba(0, 0, 0, 0.24)',
-                            },
-                        },
-                    },
                 },
             ],
             /* wwEditor:start */
