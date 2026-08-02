@@ -379,6 +379,15 @@ export default {
                 '--rt-quote-margin-inline-start': props.content?.blockquoteMarginLeft || '40px',
                 '--rt-quote-margin-inline-end': props.content?.blockquoteMarginRight || '40px',
             };
+            /* wwEditor:start */
+            // The editor is never editable on the canvas, so TipTap's click handler
+            // bails and the anchor behaves like a plain link: clicking one would
+            // navigate the canvas — or open a tab — instead of selecting the element.
+            // Letting the click fall through to the surface underneath keeps WeWeb's
+            // own selection working. Preview mode (isEditing === false) leaves links
+            // live, so they can still be tested there.
+            if (isEditing.value) style['--rt-link-pointer-events'] = 'none';
+            /* wwEditor:end */
             // Per-element-type typography variables (e.g. --rt-h1-font-size).
             for (const { prefix } of CONTENT_TYPES) {
                 for (const { suffix, css } of TYPO_FIELDS) {
@@ -796,7 +805,16 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
                         // a second registration under the same name is a duplicate
                         // extension, which TipTap only warns about and whose winning
                         // options are unspecified.
-                        link: { openOnClick: false, autolink: false },
+                        // openOnClick because a contenteditable swallows the browser's
+                        // own navigation, so without it a link is inert while editing —
+                        // only a read-only editor, where the anchor is a plain <a>,
+                        // follows it. The mark renders with the extension's default
+                        // target="_blank" and rel="noopener noreferrer nofollow", so
+                        // this opens a new tab rather than navigating away from an
+                        // edit in progress. The trade-off is that a click inside link
+                        // text opens the tab instead of placing the caret; arrow into
+                        // the text to edit it.
+                        link: { openOnClick: true, autolink: false },
                         // Off on purpose: TrailingNode is new in StarterKit 3 and keeps an
                         // empty paragraph after any last block that is not one. That
                         // paragraph is a real node, not a rendering affordance, so it would
@@ -1175,6 +1193,9 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
                 color: var(--rt-link-color, #2563eb);
                 text-decoration: var(--rt-link-decoration, underline);
                 cursor: pointer;
+                // Set to `none` on the WeWeb canvas only (see rootStyle), so a click
+                // on a link there selects the component instead of following it.
+                pointer-events: var(--rt-link-pointer-events, auto);
             }
         }
     }
