@@ -36,6 +36,9 @@ import StarterKit from '@tiptap/starter-kit';
 // Placeholder among them — inside @tiptap/extensions.
 import { TextStyle, Color, FontFamily } from '@tiptap/extension-text-style';
 import { Placeholder } from '@tiptap/extensions';
+// ProseMirror's own view package (a peer dependency of @tiptap/core), for the
+// decoration that keeps the selection visible while the editor is blurred.
+import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import { CONTENT_TYPES, TYPO_FIELDS } from './settings';
 
 export default {
@@ -61,6 +64,12 @@ export default {
         const selectedText = ref('');
         const hasSelection = ref(false);
         const isFocused = ref(false);
+        // Undebounced mirror of the editor's DOM focus, unlike `isFocused` above,
+        // which lingers for 150ms so a toolbar click doesn't flicker the menu. The
+        // selection highlight needs the immediate truth: the browser stops painting
+        // the native selection the instant focus leaves, so a delay here would show
+        // as a gap where nothing at all is painted.
+        const isEditorFocused = ref(false);
         // True while keyboard focus sits inside the floating toolbar. The editor is
         // blurred at that point, so without this the menu would unmount from under
         // the very button the user just focused.
@@ -359,6 +368,7 @@ export default {
                 '--rt-font-size': props.content?.editorFontSize || '16px',
                 '--rt-color': props.content?.editorColor || '#1f2937',
                 '--rt-placeholder-color': props.content?.placeholderColor || '#6b7280',
+                '--rt-selection-bg': props.content?.selectionColor || 'rgba(100, 116, 139, 0.3)',
                 '--rt-code-bg': props.content?.codeBackground || '#f3f4f6',
                 '--rt-code-block-padding': props.content?.codeBlockPadding || '0.75em 1em',
                 '--rt-code-inline-padding': props.content?.codeInlinePadding || '0.1em 0.3em',
@@ -800,6 +810,32 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
                 ],
                 autofocus: props.content?.autofocus ? 'end' : false,
                 editorProps: {
+                    // A toolbar control that must take focus — the URL field of a link
+                    // dropdown, a colour picker's hex input — blurs the editor, and the
+                    // browser then stops painting the selection entirely. The range
+                    // itself survives in `state.selection`, so the text the user is
+                    // about to format is still the right text; it just no longer looks
+                    // selected. Paint a stand-in over the same range for as long as the
+                    // toolbar is up and the editor is blurred.
+                    //
+                    // Deliberately muted rather than a match for the native highlight,
+                    // following the platform convention (macOS repaints an unfocused
+                    // text view's selection in a secondary colour instead of dropping
+                    // it): "still selected, but the keyboard is elsewhere".
+                    decorations: state => {
+                        // showMenu, not just focus: ProseMirror keeps its selection
+                        // forever, so without it the highlight would outlive the user's
+                        // attention and sit there after they clicked away. Tying it to
+                        // the toolbar reuses the "did the press land on our own
+                        // surface?" rule that already treats a teleported dropdown panel
+                        // as part of the toolbar.
+                        if (!showMenu.value || isEditorFocused.value) return null;
+                        const { from, to, empty } = state.selection;
+                        if (empty) return null;
+                        return DecorationSet.create(state.doc, [
+                            Decoration.inline(from, to, { class: 'jp-rte__selection' }),
+                        ]);
+                    },
                     handleKeyDown: (_view, event) => {
                         // Alt+F10 moves focus into the toolbar; Escape dismisses it.
                         // Both return true to swallow the key once handled.
@@ -826,10 +862,12 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
                 onFocus: () => {
                     clearTimeout(blurTimeout.value);
                     isFocused.value = true;
+                    isEditorFocused.value = true;
                     refreshSelectionAnchor();
                     emit('trigger-event', { name: 'focus', event: {} });
                 },
                 onBlur: () => {
+                    isEditorFocused.value = false;
                     // Delay so a click on a menu button (which blurs the editor, then
                     // re-focuses it via the command) still runs. Only hide if the
                     // editor really lost focus and didn't get it back.
@@ -898,6 +936,17 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
                 if (editor) editor.view.dispatch(editor.state.tr);
             }
         );
+
+        // Decorations are only re-evaluated when the view processes a transaction, and
+        // neither focus changing nor the toolbar appearing is one — without this the
+        // highlight would only show up on the user's next edit. An empty transaction
+        // touches neither the document nor the selection, so onUpdate and
+        // onSelectionUpdate stay quiet. Dispatching while blurred cannot pull focus
+        // back either: ProseMirror only writes the DOM selection when it owns focus.
+        watch([showMenu, isEditorFocused], () => {
+            const editor = editorInstance.value;
+            if (editor) editor.view.dispatch(editor.state.tr);
+        });
 
         // Re-measure/flip once the menu is actually in the DOM, and whenever the
         // positioning props change in the editor.
@@ -985,6 +1034,24 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
             // state style (the component emits that state), so a browser outline
             // on this inner element would sit inside — and fight — that box.
             outline: none;
+
+            // Stand-in for the native selection while the editor is blurred and a
+            // toolbar control holds the focus. Background only — a foreground colour
+            // here would fight the per-type colours and any inline colour the user
+            // just applied with the very picker that caused the blur.
+            .jp-rte__selection {
+                background: var(--rt-selection-bg, rgba(100, 116, 139, 0.3));
+                // Native selection fills the line box; an inline background only
+                // covers the glyph box, which reads as thin stripes with gaps at
+                // line-height 1.5. Vertical padding on an inline element paints
+                // without affecting the line box, so this thickens the band with no
+                // reflow. Keep it under half the leading: with a translucent colour,
+                // bands from adjacent lines that overlap would blend into visibly
+                // darker seams.
+                padding: 0.15em 0;
+                box-decoration-break: clone;
+                -webkit-box-decoration-break: clone;
+            }
 
             > * + * {
                 margin-top: 0.5em;

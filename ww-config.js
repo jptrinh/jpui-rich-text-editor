@@ -45,6 +45,7 @@ export default {
                     'editorFontSize',
                     'editorColor',
                     'placeholderColor',
+                    'selectionColor',
                 ],
             },
             {
@@ -414,6 +415,22 @@ export default {
             /* wwEditor:start */
             bindingValidation: { cssSupports: 'color', type: 'string', tooltip: 'A CSS color.' },
             propertyHelp: { tooltip: 'Color of the placeholder text shown while the editor is empty.' },
+            /* wwEditor:end */
+        },
+        selectionColor: {
+            label: { en: 'Unfocused selection' },
+            type: 'Color',
+            section: 'style',
+            defaultValue: 'rgba(100, 116, 139, 0.3)',
+            bindable: true,
+            responsive: true,
+            states: true,
+            classes: true,
+            /* wwEditor:start */
+            bindingValidation: { cssSupports: 'color', type: 'string', tooltip: 'A CSS color.' },
+            propertyHelp: {
+                tooltip: 'Highlight painted over the selected text while a toolbar control that takes focus — a link dropdown\'s URL field, a color picker — is open and the browser stops drawing its own selection. Keep it muted and translucent: it should read as "still selected, but the keyboard is elsewhere", not compete with the real selection.',
+            },
             /* wwEditor:end */
         },
 
