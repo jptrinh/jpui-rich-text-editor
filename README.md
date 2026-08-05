@@ -70,11 +70,6 @@ component instead, so WeWeb's drag & drop into the dropzone keeps working.
 
 ---
 
-## Testing
-
-`TEST.md` holds the manual test plan — risk-ordered, with the editor-canvas vs
-Preview differences called out and a regression suite for bugs already fixed.
-
 ## Getting started
 
 ```bash
