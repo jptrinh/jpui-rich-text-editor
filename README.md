@@ -58,6 +58,27 @@ panel does close it — including through the transparent full-page overlay a se
 puts up while its panel is open, so clicking the toolbar to dismiss the panel
 leaves the toolbar standing.
 
+### Your own toolbar
+
+Turn on **`Hide floating toolbar`** and build the toolbar wherever you like, showing
+it on `hasSelection` and wiring its buttons to the component's actions.
+
+One thing then needs saying out loud: **give that toolbar a class and put it in
+`External toolbar selector`** (e.g. `.my-editor-toolbar`). Your toolbar is nowhere
+near this component in the DOM, so without that the component can't tell a press on
+it from a press on any other part of the page — and a control that takes the focus,
+a select in particular, would read as the user clicking away. The selection would be
+dropped, `hasSelection` would go false, and your toolbar would hide itself mid-click.
+
+With the selector set, a press on that toolbar — or on a dropdown panel one of its
+controls opens at the page root — holds the selection: it stays reported *and* stays
+highlighted (in the muted stand-in colour, since the editor no longer has focus), so
+the user keeps seeing what they are formatting. Tabbing into the toolbar holds it the
+same way. A press anywhere else is still the user leaving, and releases everything.
+
+You don't need `preventDefault` on your buttons for this, and nothing has to change
+inside the components you drop in.
+
 **The editor is read-only on the WeWeb canvas.** That's deliberate: typing on the
 canvas is never written back to `Initial value`, so it would be silently lost on
 reload. Use Preview to type — editing works normally there and at runtime.
@@ -91,6 +112,7 @@ npm run build -- --name=jpui-rich-text-editor --type=wwobject
 | `Editable` | OnOff | Allow the user to edit. Note the editor is always read-only on the WeWeb canvas — see below. |
 | `Read only` | OnOff | Force read-only (overrides Editable). |
 | `Autofocus` | OnOff | Focus the editor on load. |
+| `External toolbar selector` | Text | CSS selector for a toolbar you built yourself — pressing it doesn't clear the selection. See [Your own toolbar](#your-own-toolbar). |
 | `Force open floating toolbar` | OnOff | **Editor mode only** — keep the menu open to drop/arrange buttons. No runtime effect. |
 | `Manual close` | OnOff | Stops the toolbar auto-closing when focus leaves it. Turn on when the toolbar holds a **dropdown or popup** — see below. |
 | `Debounce change event` (+ delay) | OnOff / Length | Debounce the `change` event. |

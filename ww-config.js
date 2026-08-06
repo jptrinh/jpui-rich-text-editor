@@ -69,6 +69,7 @@ export default {
             'readonly',
             'autofocus',
             'hideToolbar',
+            'externalToolbarSelector',
             'forceOpenMenu',
             'manualClose',
             'debounce',
@@ -189,6 +190,22 @@ export default {
             bindingValidation: { type: 'boolean', tooltip: 'A boolean value: \n\n`true` or `false`' },
             propertyHelp: {
                 tooltip: 'Turn on when you build your own toolbar elsewhere on the page and drive this editor with its actions (Toggle Bold, Set Heading, …) and exposed state. The floating toolbar then never appears — in the editor or at runtime — and Alt+F10 does nothing, since there is nothing to move focus to.',
+            },
+            /* wwEditor:end */
+        },
+        externalToolbarSelector: {
+            label: { en: 'External toolbar selector', fr: 'Sélecteur de barre externe' },
+            type: 'Text',
+            section: 'settings',
+            defaultValue: '',
+            bindable: true,
+            /* wwEditor:start */
+            bindingValidation: {
+                type: 'string',
+                tooltip: 'A CSS selector matching your own toolbar, e.g. `.my-editor-toolbar`.',
+            },
+            propertyHelp: {
+                tooltip: 'CSS selector for a toolbar you built yourself elsewhere on the page (add a class to its container in the Style panel). Clicking it — or a dropdown panel it opens — no longer counts as leaving the editor: the selection keeps being reported as selected and stays highlighted, so a control that takes the focus, like a select, does not clear it. Several selectors can be comma-separated. Leave empty if the floating toolbar is the only one.',
             },
             /* wwEditor:end */
         },

@@ -102,6 +102,13 @@ export default {
         // release instead of popping up mid-drag and chasing the moving range.
         // Keyboard selection (Shift+arrows) never sets this, so it is unaffected.
         const isPointerSelecting = ref(false);
+        // True once a press has landed on a toolbar the author built themselves
+        // (see the `External toolbar selector` property) or on a panel one of its
+        // controls opened. The editor blurs at that point exactly as it would for
+        // a click anywhere else in the page, but the user has not left the
+        // selection — they are formatting it. Held until a press lands somewhere we
+        // do not recognise, which is the real "leaving".
+        const selectionHeld = ref(false);
 
         /* wwEditor:start */
         const isEditing = computed(() => props?.wwEditorState?.isEditing ?? false);
@@ -184,16 +191,17 @@ export default {
         // elsewhere on the page even though the browser has stopped painting
         // anything — and an exposed `hasSelection` describing a selection nobody
         // can see is a lie the bindings then act on. Something paints it in exactly
-        // two cases: the editor owns focus (native highlight), or the toolbar is up
-        // over a blurred editor, which is when the stand-in decoration takes over —
-        // the same `showMenu` condition it is drawn from, so the exposed state and
-        // the floating toolbar appear and disappear together.
+        // three cases: the editor owns focus (native highlight), the toolbar is up
+        // over a blurred editor, or a toolbar of the author's own is being used —
+        // the last two are when the stand-in decoration takes over, and it is drawn
+        // from these very conditions, so what is exposed and what is on screen
+        // cannot drift apart.
         //
         // `isFocused` is the debounced mirror on purpose: a toolbar button blurs the
         // editor for a moment before its command refocuses it, and the selection
         // must not blink out from under the very click that is formatting it.
         const isSelectionVisible = computed(
-            () => hasSelection.value && (isFocused.value || showMenu.value)
+            () => hasSelection.value && (isFocused.value || showMenu.value || selectionHeld.value)
         );
 
         // Single source of truth for the exposed selection state. Pushes the same
@@ -329,9 +337,11 @@ export default {
         );
         const toolbarLabel = computed(() => props.content?.toolbarLabel?.trim() || 'Text formatting');
 
-        // Drop the latch as soon as there is no selection left to format.
+        // Drop the latch, and the hold, as soon as there is no selection left to format.
         watch(hasSelection, has => {
-            if (!has) menuLatched.value = false;
+            if (has) return;
+            menuLatched.value = false;
+            selectionHeld.value = false;
         });
 
         // The range itself does not change when the user clicks away, so nothing
@@ -732,11 +742,33 @@ export default {
             refreshSelectionAnchor();
         };
 
-        // Surfaces a press may land on without it meaning "the user left": the toolbar,
-        // the editor, and any panel a toolbar control opened at the page root.
+        // The hold below is a feature of this mode alone. Without a selector the
+        // component has no external toolbar to protect, and arming it anyway would
+        // change how the floating toolbar behaves for everyone who never asked for
+        // any of this.
+        const hasExternalToolbar = computed(() => !!props.content?.externalToolbarSelector?.trim());
+
+        // A toolbar the author built themselves is nowhere near this component in the
+        // DOM, so it can only be named: `.my-editor-toolbar`. Guarded, because the
+        // property is free text and a half-typed selector would otherwise throw on
+        // every single press.
+        const matchesExternalToolbar = node => {
+            const selector = props.content?.externalToolbarSelector?.trim();
+            if (!selector || typeof node?.closest !== 'function') return false;
+            try {
+                return !!node.closest(selector);
+            } catch (e) {
+                return false;
+            }
+        };
+
+        // Surfaces a press may land on without it meaning "the user left": the toolbar
+        // (floating or the author's own), the editor, and any panel a toolbar control
+        // opened at the page root.
         const isOwnSurface = node =>
             containsNode(menuEl.value, node) ||
             containsNode(editorInstance.value?.view?.dom, node) ||
+            matchesExternalToolbar(node) ||
             (typeof node?.closest === 'function' && !!node.closest(FLOATING_LAYER_SELECTOR));
 
         // The event target alone does not answer "did the press land on us?". An open
@@ -754,16 +786,47 @@ export default {
             return doc.elementsFromPoint(clientX, clientY).some(isOwnSurface);
         };
 
-        // `Manual close` exists so that interacting with the toolbar cannot dismiss it —
-        // not so the toolbar outlives the user's attention. A pointer landing outside the
-        // editor, the toolbar and any panel the toolbar opened is the user leaving, so it
-        // drops the latch and lets showMenu close as usual.
+        // Every press in the page passes here, and the question is always the same:
+        // did it land on one of our surfaces? A press that did not is the user
+        // leaving — it drops the hold on the selection, and (`Manual close` exists so
+        // that interacting with the toolbar cannot dismiss it, not so the toolbar
+        // outlives the user's attention) the latch with it, letting showMenu close as
+        // usual. A press that did, on anything other than the editor itself, is the
+        // user reaching for a control that is about to blur the editor while still
+        // working on this selection: hold it.
         const onDocumentPointerDown = event => {
-            if (!showMenu.value) return;
-            if (pressedOnOwnSurface(event)) return;
+            // Nothing open and nothing to hold: don't hit-test every press in the page.
+            if (!showMenu.value && !(hasExternalToolbar.value && hasSelection.value)) return;
+            const own = pressedOnOwnSurface(event);
+            if (hasExternalToolbar.value) {
+                // Landing back in the editor ends the hold as surely as leaving does:
+                // the editor is about to own the selection again.
+                selectionHeld.value =
+                    own && !containsNode(editorInstance.value?.view?.dom, event?.target);
+            }
+            if (!showMenu.value || own) return;
             menuLatched.value = false;
             isMenuFocused.value = false;
             menuFocusFromKeyboard.value = false;
+        };
+
+        // Keyboard users never produce the press the hold above is read from: Tab
+        // into the author's toolbar and the editor blurs with no pointer event
+        // anywhere. Focus landing on one of our surfaces holds the selection just the
+        // same, and focus landing anywhere else — including back in the editor, where
+        // the hold is moot — releases it. Focus parked on the body is ignored rather
+        // than treated as leaving: dropdowns routinely bounce through it while
+        // opening, and that bounce is not the user going anywhere.
+        const onDocumentFocusIn = event => {
+            if (!hasExternalToolbar.value) return;
+            const target = event?.target;
+            const doc = wwLib.getFrontDocument();
+            if (!target || target === doc?.body || target === doc?.documentElement) return;
+            if (containsNode(editorInstance.value?.view?.dom, target)) {
+                selectionHeld.value = false;
+                return;
+            }
+            selectionHeld.value = isOwnSurface(target);
         };
 
         // focusout fires before focusin when moving between two buttons, so settle
@@ -837,6 +900,7 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
             doc?.addEventListener('pointerdown', onDocumentPointerDownSelect, { capture: true });
             doc?.addEventListener('pointerup', onDocumentPointerUpSelect, { capture: true });
             doc?.addEventListener('pointercancel', onDocumentPointerUpSelect, { capture: true });
+            doc?.addEventListener('focusin', onDocumentFocusIn, { capture: true });
 
             editorInstance.value = new Editor({
                 element: editorEl.value,
@@ -885,13 +949,16 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
                     // text view's selection in a secondary colour instead of dropping
                     // it): "still selected, but the keyboard is elsewhere".
                     decorations: state => {
-                        // showMenu, not just focus: ProseMirror keeps its selection
-                        // forever, so without it the highlight would outlive the user's
-                        // attention and sit there after they clicked away. Tying it to
-                        // the toolbar reuses the "did the press land on our own
-                        // surface?" rule that already treats a teleported dropdown panel
-                        // as part of the toolbar.
-                        if (!showMenu.value || isEditorFocused.value) return null;
+                        // A toolbar being up, not just focus: ProseMirror keeps its
+                        // selection forever, so without that the highlight would outlive
+                        // the user's attention and sit there after they clicked away.
+                        // Tying it to the toolbar reuses the "did the press land on our
+                        // own surface?" rule that already treats a teleported dropdown
+                        // panel as part of the toolbar. `selectionHeld` is the same idea
+                        // for a toolbar the author built themselves, which this component
+                        // has no other way of knowing is on screen.
+                        if (isEditorFocused.value) return null;
+                        if (!showMenu.value && !selectionHeld.value) return null;
                         const { from, to, empty } = state.selection;
                         if (empty) return null;
                         return DecorationSet.create(state.doc, [
@@ -957,6 +1024,7 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
             doc?.removeEventListener('pointerdown', onDocumentPointerDownSelect, { capture: true });
             doc?.removeEventListener('pointerup', onDocumentPointerUpSelect, { capture: true });
             doc?.removeEventListener('pointercancel', onDocumentPointerUpSelect, { capture: true });
+            doc?.removeEventListener('focusin', onDocumentFocusIn, { capture: true });
             if (repositionFrame !== null) win?.cancelAnimationFrame(repositionFrame);
             editorInstance.value?.destroy();
             editorInstance.value = null;
@@ -1005,7 +1073,7 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
         // touches neither the document nor the selection, so onUpdate and
         // onSelectionUpdate stay quiet. Dispatching while blurred cannot pull focus
         // back either: ProseMirror only writes the DOM selection when it owns focus.
-        watch([showMenu, isEditorFocused], () => {
+        watch([showMenu, isEditorFocused, selectionHeld], () => {
             const editor = editorInstance.value;
             if (editor) editor.view.dispatch(editor.state.tr);
         });

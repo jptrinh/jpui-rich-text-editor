@@ -70,6 +70,13 @@
       "bindable": true
     },
     {
+      "name": "externalToolbarSelector",
+      "description": "CSS selector matching a toolbar the app built itself (e.g. \".my-editor-toolbar\", several comma-separated). Pressing it — or a dropdown panel one of its controls opens — no longer counts as leaving the editor: hasSelection/selectedText keep reporting the selection and it stays highlighted, so a control that takes the focus does not clear it. Empty means the floating toolbar is the only one.",
+      "type": "string",
+      "defaultValue": "",
+      "bindable": true
+    },
+    {
       "name": "forceOpenMenu",
       "description": "Editor mode only: keep the floating toolbar open to drop/arrange buttons.",
       "type": "boolean",
