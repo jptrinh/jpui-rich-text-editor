@@ -179,6 +179,23 @@ export default {
             defaultValue: {},
         });
 
+        // Whether the user can actually SEE the selection. ProseMirror keeps its
+        // range forever, so the raw `hasSelection` stays true after a click
+        // elsewhere on the page even though the browser has stopped painting
+        // anything — and an exposed `hasSelection` describing a selection nobody
+        // can see is a lie the bindings then act on. Something paints it in exactly
+        // two cases: the editor owns focus (native highlight), or the toolbar is up
+        // over a blurred editor, which is when the stand-in decoration takes over —
+        // the same `showMenu` condition it is drawn from, so the exposed state and
+        // the floating toolbar appear and disappear together.
+        //
+        // `isFocused` is the debounced mirror on purpose: a toolbar button blurs the
+        // editor for a moment before its command refocuses it, and the selection
+        // must not blink out from under the very click that is formatting it.
+        const isSelectionVisible = computed(
+            () => hasSelection.value && (isFocused.value || showMenu.value)
+        );
+
         // Single source of truth for the exposed selection state. Pushes the same
         // snapshot into BOTH the local context (ref) and the `state` variable so
         // they always update together, on every selection / formatting change.
@@ -189,10 +206,11 @@ export default {
             // No `html` here on purpose: the content lives in the `value` variable.
             // Duplicating it would lag behind whenever debounce is on, and would
             // republish this snapshot on every keystroke.
+            const visible = isSelectionVisible.value;
             const snapshot = {
                 ...editorState.value,
-                hasSelection: hasSelection.value,
-                selectedText: selectedText.value,
+                hasSelection: visible,
+                selectedText: visible ? selectedText.value : '',
                 isEmpty: !!editorInstance.value?.isEmpty,
             };
             // Flat object of primitives — a stable serialization is a cheap and
@@ -202,6 +220,19 @@ export default {
             lastSnapshotKey = key;
             localData.value = snapshot;
             setStateVar(snapshot);
+        };
+
+        // The `selectionChange` event carries the same text the exposed state does,
+        // so a workflow reading `event.text` and a binding reading `selectedText`
+        // never disagree. `force` is what ProseMirror's own selection updates use:
+        // moving the caret is a selection change worth announcing even though the
+        // text stays empty. Everything else only speaks when the text really moved.
+        let lastEmittedSelectionText = '';
+        const emitSelectionChange = (force = false) => {
+            const text = isSelectionVisible.value ? selectedText.value : '';
+            if (!force && text === lastEmittedSelectionText) return;
+            lastEmittedSelectionText = text;
+            emit('trigger-event', { name: 'selectionChange', event: { text } });
         };
 
         // ---- Editable / readonly (editor state overrides content) ----
@@ -301,6 +332,17 @@ export default {
         // Drop the latch as soon as there is no selection left to format.
         watch(hasSelection, has => {
             if (!has) menuLatched.value = false;
+        });
+
+        // The range itself does not change when the user clicks away, so nothing
+        // else republishes the snapshot: losing (or regaining) the visible
+        // selection has to push it out on its own. Announced as a selection change
+        // too, so a workflow hears about it and not only a binding — but only when
+        // onSelectionUpdate has not just said the same thing, which it has for
+        // every selection the user makes inside the editor.
+        watch(isSelectionVisible, () => {
+            syncExposed();
+            emitSelectionChange();
         });
 
         // Latch on the natural open condition rather than on showMenu itself, to
@@ -768,7 +810,9 @@ export default {
         // local context only carries reactive STATE for bindings/formulas.
         const markdown = `### Rich Text Editor
 State exposed as \`context.local.data?.['richText']\`:
-- \`isEmpty\`, \`hasSelection\`, \`selectedText\` (the HTML content is the \`value\` variable)
+- \`isEmpty\`, \`hasSelection\`, \`selectedText\` — the *visible* selection: clicking
+  away in the page clears them, like the floating toolbar (the HTML content is
+  the \`value\` variable)
 - \`isBold\`, \`isItalic\`, \`isUnderline\`, \`isStrike\`, \`isCode\`, \`isCodeBlock\`
 - \`isBulletList\`, \`isOrderedList\`, \`isBlockquote\`, \`isLink\`, \`linkHref\`
 - \`currentHeadingLevel\` (0 = paragraph), \`currentColor\`, \`currentFontFamily\`
@@ -875,7 +919,7 @@ Bind your dropped buttons to the exposed actions (Toggle Bold, Set Heading, …)
                     menuDismissed.value = false;
                     refreshState();
                     refreshSelectionAnchor();
-                    emit('trigger-event', { name: 'selectionChange', event: { text: selectedText.value } });
+                    emitSelectionChange(true);
                 },
                 onFocus: () => {
                     clearTimeout(blurTimeout.value);

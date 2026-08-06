@@ -730,12 +730,12 @@
         {
           "name": "hasSelection",
           "type": "boolean",
-          "description": "True when there is a non-empty selection."
+          "description": "True when there is a non-empty selection AND it is visibly selected — clicking away in the page clears it, like the floating toolbar."
         },
         {
           "name": "selectedText",
           "type": "string",
-          "description": "The currently selected text."
+          "description": "The currently selected text, empty once the selection is no longer visible."
         },
         {
           "name": "isEmpty",

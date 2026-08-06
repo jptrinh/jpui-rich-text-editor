@@ -207,6 +207,13 @@ active state.
 The HTML content is **not** part of that snapshot — it lives in the **`value`**
 variable and is emitted through the **`On change`** event.
 
+`hasSelection` and `selectedText` describe the selection the user can *see*, not
+the range the editor still holds internally: clicking elsewhere in the page stops
+the browser painting the highlight, so they reset to `false` / `""` at the same
+moment the floating toolbar hides. Interacting with the toolbar — including a
+control that takes the focus, such as a link's URL field — keeps them, and
+**`On selection change`** fires with the new (possibly empty) text.
+
 ---
 
 ## Use it in a form
